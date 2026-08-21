@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="HalaLoya — AI, Innovation & Research. Exploring Responsible AI, human potential and emerging technologies.">
+<title>HalaLoya | AI • Innovation • Research</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #07090d;
+    color: #f5f7fa;
+    line-height: 1.6;
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 22px 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(7,9,13,0.85);
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+nav a {
+    color: #d7dce5;
+    text-decoration: none;
+    margin-left: 28px;
+    font-size: 14px;
+}
+
+nav a:hover {
+    color: white;
+}
+
+.hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 130px 7% 80px;
+    background:
+        radial-gradient(circle at 75% 35%, rgba(77,110,255,0.22), transparent 30%),
+        radial-gradient(circle at 20% 80%, rgba(0,210,255,0.10), transparent 30%),
+        #07090d;
+}
+
+.hero-content {
+    max-width: 850px;
+}
+
+.label {
+    letter-spacing: 4px;
+    font-size: 13px;
+    color: #9ba8c7;
+    margin-bottom: 25px;
+}
+
+h1 {
+    font-size: clamp(60px, 10vw, 130px);
+    line-height: 0.95;
+    letter-spacing: -5px;
+    margin-bottom: 28px;
+}
+
+.hero h2 {
+    font-size: clamp(22px, 3vw, 38px);
+    font-weight: 400;
+    color: #c8cfdd;
+    margin-bottom: 25px;
+}
+
+.hero p {
+    max-width: 680px;
+    font-size: 18px;
+    color: #929aaa;
+    margin-bottom: 40px;
+}
+
+.button {
+    display: inline-block;
+    padding: 15px 27px;
+    border: 1px solid #596782;
+    border-radius: 40px;
+    color: white;
+    text-decoration: none;
+    margin-right: 12px;
+    transition: 0.3s;
+}
+
+.button:hover {
+    background: white;
+    color: #07090d;
+}
+
+section {
+    padding: 110px 7%;
+}
+
+.section-label {
+    color: #8290ae;
+    letter-spacing: 3px;
+    font-size: 12px;
+    margin-bottom: 18px;
+}
+
+section h2 {
+    font-size: clamp(36px, 5vw, 65px);
+    margin-bottom: 25px;
+}
+
+.intro {
+    max-width: 750px;
+    color: #9ca4b4;
+    font-size: 18px;
+}
+
+.projects {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 55px;
+}
+
+.card {
+    min-height: 260px;
+    padding: 32px;
+    border: 1px solid #1d2431;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #0c1018, #090c12);
+    transition: 0.35s;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    border-color: #52617d;
+}
+
+.card-number {
+    color: #687997;
+    font-size: 13px;
+    margin-bottom: 50px;
+}
+
+.card h3 {
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+
+.card p {
+    color: #8e97a8;
+    font-size: 15px;
+}
+
+.research {
+    background: #0a0d13;
+}
+
+.research-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 70px;
+    margin-top: 50px;
+}
+
+.research-item {
+    border-top: 1px solid #28303d;
+    padding-top: 22px;
+}
+
+.research-item h3 {
+    margin-bottom: 10px;
+    font-size: 22px;
+}
+
+.research-item p {
+    color: #8f98a8;
+}
+
+.contact {
+    text-align: center;
+    padding-bottom: 140px;
+}
+
+.contact p {
+    max-width: 650px;
+    margin: 0 auto 35px;
+    color: #929aaa;
+}
+
+footer {
+    border-top: 1px solid #1b212c;
+    padding: 35px 7%;
+    color: #687181;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+}
+
+@media (max-width: 750px) {
+    nav {
+        padding: 18px 5%;
+    }
+
+    nav div:last-child {
+        display: none;
+    }
+
+    .hero {
+        padding-left: 5%;
+        padding-right: 5%;
+    }
+
+    section {
+        padding-left: 5%;
+        padding-right: 5%;
+    }
+
+    .research-grid {
+        grid-template-columns: 1fr;
+    }
+
+    footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <div class="logo">HALALOYA</div>
+
+    <div>
+        <a href="#about">About</a>
+        <a href="#projects">Projects</a>
+        <a href="#research">Research</a>
+        <a href="#contact">Contact</a>
+    </div>
+</nav>
+
+<header class="hero">
+
+    <div class="hero-content">
+
+        <div class="label">AI • INNOVATION • RESEARCH</div>
+
+        <h1>HALALOYA</h1>
+
+        <h2>Exploring the intersection of AI, human potential & emerging technology.</h2>
+
+        <p>
+            An innovation and research platform exploring responsible artificial intelligence,
+            human-centered technology and new approaches to emerging scientific challenges.
+        </p>
+
+        <a class="button" href="#projects">Explore Projects</a>
+        <a class="button" href="#research">Research</a>
+
+    </div>
+
+</header>
+
+<section id="about">
+
+    <div class="section-label">01 — ABOUT</div>
+
+    <h2>Ideas become<br>experiments.</h2>
+
+    <p class="intro">
+        HalaLoya brings together artificial intelligence, responsible innovation,
+        human potential and emerging technologies to explore ideas that can become
+        meaningful real-world solutions.
+    </p>
+
+</section>
+
+<section id="projects">
+
+    <div class="section-label">02 — PROJECTS</div>
+
+    <h2>Projects in motion.</h2>
+
+    <div class="projects">
+
+        <article class="card">
+            <div class="card-number">01</div>
+            <h3>HalaLoya 40+</h3>
+            <p>
+                An AI-powered platform designed to support women through a new
+                stage of life using personalized interaction, memory and journey intelligence.
+            </p>
+        </article>
+
+        <article class="card">
+            <div class="card-number">02</div>
+            <h3>Non-Invasive Brain Interface</h3>
+            <p>
+                Exploring AI-assisted brain-computer interface concepts without
+                surgical implantation.
+            </p>
+        </article>
+
+        <article class="card">
+            <div class="card-number">03</div>
+            <h3>AI + Nanotechnology</h3>
+            <p>
+                Exploring intelligent analysis of soil and environmental conditions
+                related to petroleum fields using nanotechnology and AI.
+            </p>
+        </article>
+
+        <article class="card">
+            <div class="card-number">04</div>
+            <h3>Responsible AI</h3>
+            <p>
+                Exploring transparency, human oversight, privacy, fairness and
+                responsible AI practices in technology products.
+            </p>
+        </article>
+
+    </div>
+
+</section>
+
+<section id="research" class="research">
+
+    <div class="section-label">03 — RESEARCH</div>
+
+    <h2>Where technology<br>meets questions.</h2>
+
+    <div class="research-grid">
+
+        <div class="research-item">
+            <h3>Artificial Intelligence</h3>
+            <p>
+                Responsible AI, human-centered systems and emerging AI applications.
+            </p>
+        </div>
+
+        <div class="research-item">
+            <h3>Human Potential</h3>
+            <p>
+                Exploring technology that expands accessibility, communication and human capability.
+            </p>
+        </div>
+
+        <div class="research-item">
+            <h3>Neurotechnology</h3>
+            <p>
+                Brain-computer interfaces and non-invasive approaches to human-machine interaction.
+            </p>
+        </div>
+
+        <div class="research-item">
+            <h3>Emerging Technologies</h3>
+            <p>
+                Nanotechnology, energy and interdisciplinary technological research.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+<section id="contact" class="contact">
+
+    <div class="section-label">04 — CONTACT</div>
+
+    <h2>Let's explore what's next.</h2>
+
+    <p>
+        For research, innovation, collaboration and technology opportunities,
+        get in touch with HalaLoya.
+    </p>
+
+    <a class="button" href="mailto:hello@halaloya.com">Contact HalaLoya</a>
+
+</section>
+
+<footer>
+
+    <span>© 2026 HalaLoya</span>
+
+    <span>AI • Innovation • Research</span>
+
+</footer>
+
+</body>
+</html>
