@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="description" content="HalaLoya — Non-Invasive Brain Interface research exploring AI-assisted human-computer interaction without surgical implantation.">
+
+<title>Non-Invasive Brain Interface | HalaLoya</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+html{
+scroll-behavior:smooth;
+}
+
+body{
+font-family:Arial,Helvetica,sans-serif;
+background:#05070b;
+color:#f5f7fb;
+line-height:1.7;
+}
+
+nav{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+padding:20px 7%;
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:rgba(5,7,11,.82);
+backdrop-filter:blur(18px);
+border-bottom:1px solid rgba(255,255,255,.07);
+z-index:1000;
+}
+
+.logo{
+font-size:21px;
+font-weight:bold;
+letter-spacing:4px;
+}
+
+nav a{
+color:#aeb7c7;
+text-decoration:none;
+font-size:13px;
+margin-left:25px;
+}
+
+nav a:hover{
+color:white;
+}
+
+.hero{
+min-height:92vh;
+display:flex;
+align-items:center;
+padding:150px 7% 90px;
+background:
+radial-gradient(circle at 75% 30%,rgba(90,110,255,.18),transparent 32%),
+radial-gradient(circle at 15% 75%,rgba(0,200,255,.08),transparent 30%),
+#05070b;
+}
+
+.hero-content{
+max-width:950px;
+}
+
+.label{
+font-size:11px;
+letter-spacing:5px;
+color:#8290aa;
+margin-bottom:25px;
+}
+
+h1{
+font-size:clamp(55px,9vw,115px);
+line-height:.92;
+letter-spacing:-5px;
+margin-bottom:30px;
+}
+
+.hero h2{
+font-size:clamp(25px,4vw,47px);
+font-weight:400;
+line-height:1.15;
+max-width:850px;
+margin-bottom:28px;
+}
+
+.hero p{
+max-width:760px;
+font-size:18px;
+color:#929aaa;
+margin-bottom:38px;
+}
+
+.button{
+display:inline-block;
+padding:14px 25px;
+border:1px solid #4e5b73;
+border-radius:50px;
+color:white;
+text-decoration:none;
+font-size:14px;
+margin-right:10px;
+transition:.3s;
+}
+
+.button:hover{
+background:white;
+color:#05070b;
+}
+
+section{
+padding:110px 7%;
+}
+
+.tag{
+font-size:11px;
+letter-spacing:4px;
+color:#78859e;
+margin-bottom:20px;
+}
+
+.title{
+font-size:clamp(38px,6vw,72px);
+line-height:1;
+letter-spacing:-3px;
+margin-bottom:25px;
+}
+
+.intro{
+max-width:800px;
+font-size:18px;
+color:#969eae;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:20px;
+margin-top:60px;
+}
+
+.card{
+padding:34px;
+min-height:250px;
+border:1px solid #202938;
+border-radius:20px;
+background:linear-gradient(145deg,#0b1018,#070a10);
+}
+
+.card-number{
+font-size:11px;
+letter-spacing:3px;
+color:#68758d;
+margin-bottom:45px;
+}
+
+.card h3{
+font-size:26px;
+margin-bottom:13px;
+}
+
+.card p{
+color:#9099aa;
+}
+
+.dark{
+background:#090d14;
+}
+
+.principles{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:15px;
+margin-top:50px;
+}
+
+.principle{
+padding:25px;
+border-top:1px solid #303949;
+color:#aeb7c6;
+}
+
+.status{
+background:#090d14;
+}
+
+.status-box{
+margin-top:50px;
+padding:40px;
+border:1px solid #263142;
+border-radius:20px;
+}
+
+.status-box h3{
+font-size:28px;
+margin-bottom:15px;
+}
+
+.status-box p{
+color:#929aaa;
+max-width:800px;
+}
+
+.contact{
+text-align:center;
+padding-bottom:140px;
+}
+
+.contact .intro{
+margin:0 auto 35px;
+}
+
+footer{
+border-top:1px solid #1c232e;
+padding:30px 7%;
+display:flex;
+justify-content:space-between;
+color:#687181;
+font-size:12px;
+}
+
+@media(max-width:800px){
+
+nav{
+padding:18px 5%;
+}
+
+nav div:last-child{
+display:none;
+}
+
+.hero,
+section{
+padding-left:5%;
+padding-right:5%;
+}
+
+.grid{
+grid-template-columns:1fr;
+}
+
+.principles{
+grid-template-columns:1fr 1fr;
+}
+
+}
+
+@media(max-width:500px){
+
+.principles{
+grid-template-columns:1fr;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<nav>
+
+<div class="logo">HALALOYA</div>
+
+<div>
+<a href="index.html">Home</a>
+<a href="#concept">Concept</a>
+<a href="#technology">Technology</a>
+<a href="#responsible">Responsible AI</a>
+<a href="#contact">Contact</a>
+</div>
+
+</nav>
+
+
+<header class="hero">
+
+<div class="hero-content">
+
+<div class="label">
+HALALOYA — PROJECT 02
+</div>
+
+<h1>
+NON-INVASIVE<br>
+BRAIN INTERFACE
+</h1>
+
+<h2>
+Exploring a new approach to human-computer interaction.
+</h2>
+
+<p>
+A research concept exploring whether artificial intelligence,
+advanced sensing and signal processing can help interpret
+human intent without surgical brain implantation.
+</p>
+
+<a class="button" href="index.html">
+← Back to HalaLoya
+</a>
+
+</div>
+
+</header>
+
+
+<section id="concept">
+
+<div class="tag">
+01 — THE CONCEPT
+</div>
+
+<h2 class="title">
+The brain interface<br>without surgery.
+</h2>
+
+<p class="intro">
+
+The project explores non-invasive approaches to brain-computer
+interaction using external sensing technologies combined with
+artificial intelligence.
+
+The long-term research question is how brain-related signals
+could be captured, interpreted and translated into useful
+commands while preserving human safety, privacy and control.
+
+</p>
+
+</section>
+
+
+<section id="technology" class="dark">
+
+<div class="tag">
+02 — RESEARCH DIRECTION
+</div>
+
+<h2 class="title">
+Signals into<br>meaning.
+</h2>
+
+<p class="intro">
+
+The research direction combines neuroscience, signal processing,
+machine learning and human-computer interaction.
+
+</p>
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<div class="card-number">
+01 — SENSING
+</div>
+
+<h3>
+Non-Invasive Signals
+</h3>
+
+<p>
+Exploring external methods of capturing brain-related activity,
+including EEG and other non-invasive sensing approaches.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-number">
+02 — AI
+</div>
+
+<h3>
+Signal Interpretation
+</h3>
+
+<p>
+Using machine-learning approaches to identify patterns within
+complex and noisy biological signals.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-number">
+03 — INTENT
+</div>
+
+<h3>
+Human Intent
+</h3>
+
+<p>
+Exploring how neural and physiological signals could potentially
+be translated into meaningful interaction commands.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-number">
+04 — ADAPTATION
+</div>
+
+<h3>
+Adaptive Intelligence
+</h3>
+
+<p>
+Investigating AI systems that can adapt to individual users
+rather than relying on identical signal patterns for everyone.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-number">
+05 — ACCESSIBILITY
+</div>
+
+<h3>
+Assistive Technology
+</h3>
+
+<p>
+Potential applications include communication and computer
+interaction for people with severe motor limitations.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-number">
+06 — HUMAN CONTROL
+</div>
+
+<h3>
+Human-Centered Design
+</h3>
+
+<p>
+The system is envisioned around user control, safety,
+privacy and meaningful human oversight.
+</p>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+<section>
+
+<div class="tag">
+03 — POSSIBLE APPLICATIONS
+</div>
+
+<h2 class="title">
+Technology for<br>human capability.
+</h2>
+
+<p class="intro">
+
+The research is exploratory. Potential future applications
+could include assistive communication, hands-free computer
+interaction, rehabilitation technologies and accessibility tools.
+
+</p>
+
+</section>
+
+
+<section id="responsible">
+
+<div class="tag">
+04 — RESPONSIBLE NEUROTECHNOLOGY
+</div>
+
+<h2 class="title">
+Innovation requires<br>boundaries.
+</h2>
+
+<p class="intro">
+
+Brain-related technologies raise important questions about
+privacy, consent, safety and human autonomy.
+
+Responsible development is therefore treated as a fundamental
+part of the research direction.
+
+</p>
+
+
+<div class="principles">
+
+<div class="principle">
+<strong>Privacy</strong><br>
+Protecting sensitive neural and personal information.
+</div>
+
+<div class="principle">
+<strong>Consent</strong><br>
+Keeping meaningful participation under user control.
+</div>
+
+<div class="principle">
+<strong>Safety</strong><br>
+Prioritizing non-invasive and safety-conscious research.
+</div>
+
+<div class="principle">
+<strong>Human Autonomy</strong><br>
+Technology should assist people, not replace their agency.
+</div>
+
+</div>
+
+</section>
+
+
+<section class="status">
+
+<div class="tag">
+05 — DEVELOPMENT
+</div>
+
+<h2 class="title">
+From research question<br>to experiment.
+</h2>
+
+<div class="status-box">
+
+<h3>
+Research Status
+</h3>
+
+<p>
+
+This is an evolving research concept.
+The project explores scientific and technological pathways
+toward non-invasive brain-computer interaction. Further
+experimentation, validation and interdisciplinary research
+are required before practical conclusions can be reached.
+
+</p>
+
+</div>
+
+</section>
+
+
+<section>
+
+<div class="tag">
+06 — VISION
+</div>
+
+<h2 class="title">
+A different interface<br>between human and machine.
+</h2>
+
+<p class="intro">
+
+The long-term vision is to investigate whether intelligent,
+non-invasive interfaces can make technology more accessible
+to people while maintaining safety, privacy and human control.
+
+</p>
+
+</section>
+
+
+<section id="contact" class="contact">
+
+<div class="tag">
+07 — CONTACT
+</div>
+
+<h2 class="title">
+Let's explore<br>what comes next.
+</h2>
+
+<p class="intro">
+
+For research, collaboration and innovation opportunities,
+contact HalaLoya.
+
+</p>
+
+<a class="button" href="index.html">
+Back to HalaLoya
+</a>
+
+</section>
+
+
+<footer>
+
+<span>© 2026 HalaLoya</span>
+
+<span>HalaLoya — AI • Innovation • Research</span>
+
+</footer>
+
+</body>
+</html>
