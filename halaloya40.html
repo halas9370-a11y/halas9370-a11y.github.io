@@ -251,15 +251,25 @@ color:#687181;
 font-size:12px;
 }
 
+
+.nav-links{display:flex;align-items:center;gap:22px;}
+nav a{margin-left:0;}
+.language-toggle{flex-shrink:0;border:1px solid #4c5971;border-radius:999px;padding:9px 13px;background:rgba(255,255,255,.04);color:#f5f7fb;font:inherit;font-size:12px;cursor:pointer;transition:.25s;}
+.language-toggle:hover{background:#fff;color:#05070b;}
+html[dir="rtl"] body{direction:rtl;}
+html[dir="rtl"] nav{direction:rtl;}
+html[dir="rtl"] .hero-content,html[dir="rtl"] section{text-align:right;}
+html[dir="rtl"] h1{letter-spacing:0;}
+html[dir="rtl"] .button{margin-right:0;margin-left:10px;}
+@media(max-width:800px){.nav-links{display:none;}nav{gap:12px;}.language-toggle{margin-inline-start:auto;}}
+
 @media(max-width:800px){
 
 nav{
 padding:18px 5%;
 }
 
-nav div:last-child{
-display:none;
-}
+.nav-links{display:none;}
 
 .hero,
 section{
@@ -298,12 +308,14 @@ grid-template-columns:1fr;
 
 <div class="logo">HALALOYA</div>
 
-<div>
+<div class="nav-links">
 <a href="index.html">Home</a>
 <a href="#system">AI System</a>
 <a href="#responsible">Responsible AI</a>
 <a href="#contact">Contact</a>
 </div>
+
+<button class="language-toggle" id="language-toggle" type="button" aria-label="Switch language">EN | العربية</button>
 
 </nav>
 
@@ -663,6 +675,34 @@ Back to HalaLoya
 <span>HalaLoya 40+ — AI • Innovation • Research</span>
 
 </footer>
+
+
+<script>
+(function(){
+const translations={"nav a[href=\"index.html\"]":"الرئيسية","nav a[href=\"#system\"]":"نظام الذكاء الاصطناعي","nav a[href=\"#responsible\"]":"الذكاء الاصطناعي المسؤول","nav a[href=\"#contact\"]":"تواصل معنا",".hero .label":"هالالويا — المشروع 01",".hero h2":"ذكاء اصطناعي يواكب رحلة النساء في مرحلة جديدة من الحياة.",".hero p":"منصة ذكاء اصطناعي تتمحور حول الإنسان، تستكشف التفاعل الشخصي والذاكرة والذكاء العاطفي والأحلام ورحلة الحياة للنساء في سن الأربعين وما بعدها.",".hero .button":"← العودة إلى هالالويا","body > section:nth-of-type(1) .tag":"01 — الفكرة","body > section:nth-of-type(1) .title":"رفيقة ذكاء اصطناعي<br>بطريقة مختلفة.","body > section:nth-of-type(1) .intro":"هالالويا 40+ مفهوم لمنصة تعتمد على الذكاء الاصطناعي، وتهدف إلى تقديم دعم شخصي من خلال ذكريات المستخدم ومشاعره وتطلعاته وأهدافه في الحياة.<br><br>وبدلًا من التعامل مع كل محادثة باعتبارها تجربة منفصلة، صُمم النظام لبناء استمرارية عبر رحلة المستخدم.","#system .tag":"02 — نظام الذكاء الاصطناعي","#system .title":"ذكاء مصمم<br>ليواكب الرحلة.","#system > .intro":"تجمع المنصة بين عدة مكونات تعتمد على الذكاء الاصطناعي لتقديم تجربة أكثر استمرارية وتخصيصًا.","#system .card:nth-child(1) .card-number":"01 — الذاكرة","#system .card:nth-child(1) h3":"ذاكرة الذكاء الاصطناعي","#system .card:nth-child(1) p":"طبقة ذاكرة منظمة لتجميع الذكريات المؤكدة والخاضعة لتحكم المستخدم، بما يساعد على تخصيص التجربة بمرور الوقت.","#system .card:nth-child(2) .card-number":"02 — المشاعر","#system .card:nth-child(2) h3":"محرك المشاعر","#system .card:nth-child(2) p":"طبقة تفاعلية تصنف الإشارات العاطفية في رسائل المستخدم، ويمكنها تكييف أسلوب تواصل المساعد.","#system .card:nth-child(3) .card-number":"03 — الرحلة","#system .card:nth-child(3) h3":"ذكاء الرحلة","#system .card:nth-child(3) p":"نظام يهدف إلى دمج الذكريات والمشاعر والأحلام والتدوين والتقدم في رؤى شخصية عن رحلة المستخدم.","#system .card:nth-child(4) .card-number":"04 — الأحلام","#system .card:nth-child(4) h3":"لوحة الأحلام","#system .card:nth-child(4) p":"يمكن للمستخدمات تحديد الأحلام والأهداف وإضافة المواعيد والملاحظات والحصول على تخطيط ومتابعة بمساعدة الذكاء الاصطناعي.","#system .card:nth-child(5) .card-number":"05 — الصوت","#system .card:nth-child(5) h3":"الذكاء الاصطناعي الصوتي","#system .card:nth-child(5) p":"تفاعل صوتي يستكشف تحويل الكلام العربي إلى نص، وتحويل النص إلى كلام، والمحادثة الصوتية.","#system .card:nth-child(6) .card-number":"06 — 90 يومًا","#system .card:nth-child(6) h3":"تخطيط الرحلة","#system .card:nth-child(6) p":"مفهوم رحلة منظمة لمدة 90 يومًا يربط الأهداف والتفاعلات اليومية والتقدم.","body > section:nth-of-type(3) .tag":"03 — كيف تتكامل المكونات","body > section:nth-of-type(3) .title":"من الذاكرة<br>إلى الفعل.","body > section:nth-of-type(3) .flow-item:nth-child(1)":"الذاكرة","body > section:nth-of-type(3) .flow-item:nth-child(2)":"المشاعر","body > section:nth-of-type(3) .flow-item:nth-child(3)":"الأحلام","body > section:nth-of-type(3) .flow-item:nth-child(4)":"إرشاد الذكاء الاصطناعي","body > section:nth-of-type(3) .flow-item:nth-child(5)":"الرحلة","#responsible .tag":"04 — الذكاء الاصطناعي المسؤول","#responsible .title":"المسؤولية<br>من أساس التصميم.","#responsible > .intro":"لأن هالالويا 40+ تتعامل مع معلومات شخصية وتفاعلات مولدة بالذكاء الاصطناعي، فإن مبادئ الذكاء الاصطناعي المسؤول جزء أساسي من تصميم المنتج.","#responsible .principle:nth-child(1)":"<strong>الخصوصية</strong><br>احترام تحكم المستخدم في معلوماته الشخصية.","#responsible .principle:nth-child(2)":"<strong>الشفافية</strong><br>توضيح طريقة عمل التفاعل مع الذكاء الاصطناعي للمستخدمين.","#responsible .principle:nth-child(3)":"<strong>تحكم المستخدم</strong><br>منح المستخدمين التحكم في الذكريات والبيانات الشخصية.","#responsible .principle:nth-child(4)":"<strong>الإشراف البشري</strong><br>إبقاء القرارات المهمة تحت السيطرة البشرية.",".status .tag":"05 — التطوير",".status .title":"من الفكرة<br>إلى التنفيذ.",".status-box h3":"التطوير الحالي",".status-box p":"هالالويا 40+ مشروع تقني قيد التطوير. يجري تطوير واختبار عدد من مكونات المنصة وميزات التفاعل مع الذكاء الاصطناعي، بينما لا تزال قدرات إضافية ضمن البحث والتطوير.","body > section:nth-of-type(6) .tag":"06 — الرؤية","body > section:nth-of-type(6) .title":"تكنولوجيا تفهم<br>استمرارية الرحلة.","body > section:nth-of-type(6) .intro":"تتمثل الرؤية طويلة المدى في استكشاف كيف يمكن للذكاء الاصطناعي المسؤول مساعدة الناس على التعامل مع أهدافهم الشخصية وتحولات حياتهم وتطلعاتهم، مع الحفاظ على استقلاليتهم وخصوصيتهم وتحكمهم.","#contact .tag":"07 — التواصل","#contact .title":"لنبنِ<br>ما يأتي بعد ذلك.","#contact .intro":"للتواصل بشأن الأبحاث والتعاون والابتكار، تواصلي مع هالالويا.","#contact .button":"العودة إلى هالالويا"};
+const titleArabic="هالالويا 40+ | هالالويا";
+const toggle=document.getElementById("language-toggle");
+if(!toggle)return;
+const englishTitle=document.title;
+function setLanguage(language){
+Object.entries(translations).forEach(([selector,arabic])=>{
+const el=document.querySelector(selector);
+if(!el)return;
+if(!el.dataset.englishHtml)el.dataset.englishHtml=el.innerHTML;
+el.innerHTML=language==="ar"?arabic:el.dataset.englishHtml;
+});
+document.documentElement.lang=language;
+document.documentElement.dir=language==="ar"?"rtl":"ltr";
+document.title=language==="ar"?titleArabic:englishTitle;
+toggle.textContent=language==="ar"?"العربية | EN":"EN | العربية";
+toggle.setAttribute("aria-label",language==="ar"?"Switch to English":"التبديل إلى العربية");
+try{localStorage.setItem("halaloya-language",language);}catch(e){}
+}
+toggle.addEventListener("click",()=>setLanguage(document.documentElement.lang==="ar"?"en":"ar"));
+let saved="en";try{saved=localStorage.getItem("halaloya-language")||"en";}catch(e){}
+setLanguage(saved==="ar"?"ar":"en");
+})();
+</script>
 
 </body>
 </html>
