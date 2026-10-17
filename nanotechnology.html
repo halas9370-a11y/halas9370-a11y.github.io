@@ -231,15 +231,25 @@ color:#687181;
 font-size:12px;
 }
 
+
+.nav-links{display:flex;align-items:center;gap:22px;}
+nav a{margin-left:0;}
+.language-toggle{flex-shrink:0;border:1px solid #4c5971;border-radius:999px;padding:9px 13px;background:rgba(255,255,255,.04);color:#f5f7fb;font:inherit;font-size:12px;cursor:pointer;transition:.25s;}
+.language-toggle:hover{background:#fff;color:#05070b;}
+html[dir="rtl"] body{direction:rtl;}
+html[dir="rtl"] nav{direction:rtl;}
+html[dir="rtl"] .hero-content,html[dir="rtl"] section{text-align:right;}
+html[dir="rtl"] h1{letter-spacing:0;}
+html[dir="rtl"] .button{margin-right:0;margin-left:10px;}
+@media(max-width:800px){.nav-links{display:none;}nav{gap:12px;}.language-toggle{margin-inline-start:auto;}}
+
 @media(max-width:800px){
 
 nav{
 padding:18px 5%;
 }
 
-nav div:last-child{
-display:none;
-}
+.nav-links{display:none;}
 
 .hero,
 section{
@@ -274,12 +284,14 @@ grid-template-columns:1fr;
 
 <div class="logo">HALALOYA</div>
 
-<div>
+<div class="nav-links">
 <a href="index.html">Home</a>
 <a href="#research">Research</a>
 <a href="#responsible">Responsible AI</a>
 <a href="#contact">Contact</a>
 </div>
+
+<button class="language-toggle" id="language-toggle" type="button" aria-label="Switch language">EN | العربية</button>
 
 </nav>
 
@@ -651,6 +663,34 @@ Back to HalaLoya
 <span>AI × Nanotechnology — Research Concept</span>
 
 </footer>
+
+
+<script>
+(function(){
+const translations={"nav a[href=\"index.html\"]":"الرئيسية","nav a[href=\"#research\"]":"الأبحاث","nav a[href=\"#responsible\"]":"الذكاء الاصطناعي المسؤول","nav a[href=\"#contact\"]":"تواصل معنا",".hero .label":"هالالويا — المشروع 03",".hero h1":"الذكاء الاصطناعي ×<br>تقنية النانو",".hero h2":"استشعار ذكي للتحديات البيئية والصناعية المعقدة.",".hero p":"مفهوم بحثي متعدد التخصصات يستكشف كيف يمكن لتقنية النانو والاستشعار المتقدم والذكاء الاصطناعي أن تعمل معًا لتحليل التربة والظروف البيئية المرتبطة بتطبيقات البترول والصناعة.",".hero .button":"← العودة إلى هالالويا","#research .tag":"01 — السؤال البحثي","#research .title":"من الاستشعار<br>إلى الذكاء.","#research .intro":"يستكشف المفهوم البحثي ما إذا كانت تقنيات الاستشعار على المستوى النانوي، عند دمجها بالذكاء الاصطناعي، يمكن أن تتيح أساليب جديدة لاكتشاف الإشارات البيئية وتصنيفها وتفسيرها.<br><br>والهدف ليس جمع البيانات فحسب، بل دراسة كيفية تحويل قياسات المستشعرات المعقدة إلى رؤى مفيدة للقرارات العلمية والصناعية.","body > section:nth-of-type(2) .tag":"02 — اتجاهات البحث","body > section:nth-of-type(2) .title":"نهج متعدد<br>التخصصات.","body > section:nth-of-type(2) > .intro":"يقع هذا المفهوم عند تقاطع عدة مجالات تقنية.","body > section:nth-of-type(2) .card:nth-child(1) .card-number":"01 — الاستشعار النانوي","body > section:nth-of-type(2) .card:nth-child(1) h3":"الاستشعار على المستوى النانوي","body > section:nth-of-type(2) .card:nth-child(1) p":"استكشاف المواد وأساليب الاستشعار النانوية القادرة على اكتشاف الإشارات الكيميائية أو الفيزيائية أو البيئية.","body > section:nth-of-type(2) .card:nth-child(2) .card-number":"02 — تحليل الذكاء الاصطناعي","body > section:nth-of-type(2) .card:nth-child(2) h3":"تحليل ذكي للبيانات","body > section:nth-of-type(2) .card:nth-child(2) p":"استخدام التعلم الآلي وأساليب الذكاء الاصطناعي لاكتشاف الأنماط وتصنيف الإشارات وتفسير بيانات المستشعرات المعقدة.","body > section:nth-of-type(2) .card:nth-child(3) .card-number":"03 — البيئة","body > section:nth-of-type(2) .card:nth-child(3) h3":"تحليل التربة والبيئة","body > section:nth-of-type(2) .card:nth-child(3) p":"استكشاف طرق لتحليل ظروف التربة والبيئة التي قد تكون ذات صلة بالأبحاث الصناعية والمرتبطة بالبترول.","body > section:nth-of-type(2) .card:nth-child(4) .card-number":"04 — التطبيقات الصناعية","body > section:nth-of-type(2) .card:nth-child(4) h3":"أبحاث البترول والصناعة","body > section:nth-of-type(2) .card:nth-child(4) p":"دراسة التطبيقات المحتملة للاستشعار والتحليل الذكيين في الحقول البترولية وغيرها من البيئات الصناعية المعقدة.","body > section:nth-of-type(3) .tag":"03 — مسار العمل التصوري","body > section:nth-of-type(3) .title":"استشعار.<br>تفسير.<br>فهم.","body > section:nth-of-type(3) .card:nth-child(1) .card-number":"الخطوة 01","body > section:nth-of-type(3) .card:nth-child(1) h3":"الاستشعار","body > section:nth-of-type(3) .card:nth-child(1) p":"تجمع المستشعرات الإشارات البيئية أو الكيميائية من البيئة المستهدفة.","body > section:nth-of-type(3) .card:nth-child(2) .card-number":"الخطوة 02","body > section:nth-of-type(3) .card:nth-child(2) h3":"المعالجة","body > section:nth-of-type(3) .card:nth-child(2) p":"تُعالج القياسات الخام وتُنقّى وتُجهّز للتحليل.","body > section:nth-of-type(3) .card:nth-child(3) .card-number":"الخطوة 03","body > section:nth-of-type(3) .card:nth-child(3) h3":"التحليل","body > section:nth-of-type(3) .card:nth-child(3) p":"تفحص نماذج الذكاء الاصطناعي الأنماط والعلاقات داخل البيانات.","body > section:nth-of-type(3) .card:nth-child(4) .card-number":"الخطوة 04","body > section:nth-of-type(3) .card:nth-child(4) h3":"الرؤية التحليلية","body > section:nth-of-type(3) .card:nth-child(4) p":"يمكن أن يدعم التحليل الناتج التفسير العلمي وأنظمة دعم القرار المستقبلية.","body > section:nth-of-type(4) .tag":"04 — التكنولوجيا المسؤولة","body > section:nth-of-type(4) .title":"ابتكار<br>بحذر.","body > section:nth-of-type(4) > .intro":"يتطلب أي تطبيق مستقبلي تحققًا دقيقًا واختبارات علمية ومراعاة بيئية وتقييمًا لجودة البيانات واستخدامًا مسؤولًا للاستنتاجات الناتجة عن الذكاء الاصطناعي.","body > section:nth-of-type(4) .principle:nth-child(1)":"<strong>التحقق العلمي</strong><br>يجب اختبار الادعاءات التجريبية بالاستناد إلى أدلة موثوقة.","body > section:nth-of-type(4) .principle:nth-child(2)":"<strong>جودة البيانات</strong><br>يجب تقييم دقة بيانات المستشعرات ومقدار عدم اليقين فيها.","body > section:nth-of-type(4) .principle:nth-child(3)":"<strong>المسؤولية البيئية</strong><br>يجب مراعاة التأثيرات البيئية المحتملة.","body > section:nth-of-type(4) .principle:nth-child(4)":"<strong>الإشراف البشري</strong><br>ينبغي للذكاء الاصطناعي دعم الحكم العلمي لا أن يحل محله.",".status .tag":"05 — التطوير",".status .title":"من سؤال بحثي<br>إلى تجربة.",".status-box h3":"الحالة البحثية الحالية",".status-box p":"هذا المشروع حاليًا مفهوم للبحث والاستكشاف. ولا تزال الجدوى العلمية وتقنيات الاستشعار والبنية التجريبية ومنهجية الذكاء الاصطناعي بحاجة إلى مزيد من الدراسة والتحقق قبل التنفيذ العملي.","body > section:nth-of-type(6) .tag":"06 — الرؤية","body > section:nth-of-type(6) .title":"ذكاء عند<br>حدود الاستشعار.","body > section:nth-of-type(6) .intro":"تتمثل الرؤية طويلة المدى في استكشاف أنظمة استشعار ذكية تربط القياسات من العالم المادي بالتحليل المتقدم للذكاء الاصطناعي، بما يفتح إمكانات جديدة للعلوم البيئية والمراقبة الصناعية والأبحاث التقنية المستقبلية.","#contact .tag":"07 — التواصل","#contact .title":"لنستكشف<br>ما الخطوة التالية.","#contact .intro":"للتواصل بشأن الأبحاث والتعاون العلمي والفرص التقنية، تواصلي مع هالالويا.","#contact .button":"العودة إلى هالالويا"};
+const titleArabic="الذكاء الاصطناعي وتقنية النانو | هالالويا";
+const toggle=document.getElementById("language-toggle");
+if(!toggle)return;
+const englishTitle=document.title;
+function setLanguage(language){
+Object.entries(translations).forEach(([selector,arabic])=>{
+const el=document.querySelector(selector);
+if(!el)return;
+if(!el.dataset.englishHtml)el.dataset.englishHtml=el.innerHTML;
+el.innerHTML=language==="ar"?arabic:el.dataset.englishHtml;
+});
+document.documentElement.lang=language;
+document.documentElement.dir=language==="ar"?"rtl":"ltr";
+document.title=language==="ar"?titleArabic:englishTitle;
+toggle.textContent=language==="ar"?"العربية | EN":"EN | العربية";
+toggle.setAttribute("aria-label",language==="ar"?"Switch to English":"التبديل إلى العربية");
+try{localStorage.setItem("halaloya-language",language);}catch(e){}
+}
+toggle.addEventListener("click",()=>setLanguage(document.documentElement.lang==="ar"?"en":"ar"));
+let saved="en";try{saved=localStorage.getItem("halaloya-language")||"en";}catch(e){}
+setLanguage(saved==="ar"?"ar":"en");
+})();
+</script>
 
 </body>
 </html>
