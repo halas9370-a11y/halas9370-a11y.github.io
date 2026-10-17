@@ -231,15 +231,25 @@ color:#687181;
 font-size:12px;
 }
 
+
+.nav-links{display:flex;align-items:center;gap:22px;}
+nav a{margin-left:0;}
+.language-toggle{flex-shrink:0;border:1px solid #4c5971;border-radius:999px;padding:9px 13px;background:rgba(255,255,255,.04);color:#f5f7fb;font:inherit;font-size:12px;cursor:pointer;transition:.25s;}
+.language-toggle:hover{background:#fff;color:#05070b;}
+html[dir="rtl"] body{direction:rtl;}
+html[dir="rtl"] nav{direction:rtl;}
+html[dir="rtl"] .hero-content,html[dir="rtl"] section{text-align:right;}
+html[dir="rtl"] h1{letter-spacing:0;}
+html[dir="rtl"] .button{margin-right:0;margin-left:10px;}
+@media(max-width:800px){.nav-links{display:none;}nav{gap:12px;}.language-toggle{margin-inline-start:auto;}}
+
 @media(max-width:800px){
 
 nav{
 padding:18px 5%;
 }
 
-nav div:last-child{
-display:none;
-}
+.nav-links{display:none;}
 
 .hero,
 section{
@@ -274,13 +284,15 @@ grid-template-columns:1fr;
 
 <div class="logo">HALALOYA</div>
 
-<div>
+<div class="nav-links">
 <a href="index.html">Home</a>
 <a href="#concept">Concept</a>
 <a href="#technology">Technology</a>
 <a href="#responsible">Responsible AI</a>
 <a href="#contact">Contact</a>
 </div>
+
+<button class="language-toggle" id="language-toggle" type="button" aria-label="Switch language">EN | العربية</button>
 
 </nav>
 
@@ -628,6 +640,34 @@ Back to HalaLoya
 <span>HalaLoya — AI • Innovation • Research</span>
 
 </footer>
+
+
+<script>
+(function(){
+const translations={"nav a[href=\"index.html\"]":"الرئيسية","nav a[href=\"#concept\"]":"المفهوم","nav a[href=\"#technology\"]":"التقنية","nav a[href=\"#responsible\"]":"الذكاء الاصطناعي المسؤول","nav a[href=\"#contact\"]":"تواصل معنا",".hero .label":"هالالويا — المشروع 02",".hero h1":"واجهة الدماغ<br>غير الجراحية",".hero h2":"استكشاف نهج جديد للتفاعل بين الإنسان والحاسوب.",".hero p":"مفهوم بحثي يدرس ما إذا كان الذكاء الاصطناعي والاستشعار المتقدم ومعالجة الإشارات يمكن أن تساعد في تفسير نوايا الإنسان دون زرع جراحي داخل الدماغ.",".hero .button":"← العودة إلى هالالويا","#concept .tag":"01 — المفهوم","#concept .title":"واجهة للدماغ<br>دون جراحة.","#concept .intro":"يستكشف المشروع أساليب غير جراحية للتفاعل بين الدماغ والحاسوب باستخدام تقنيات استشعار خارجية إلى جانب الذكاء الاصطناعي.<br><br>ويتمثل سؤال البحث طويل المدى في كيفية التقاط الإشارات المرتبطة بالدماغ وتفسيرها وتحويلها إلى أوامر مفيدة، مع الحفاظ على سلامة الإنسان وخصوصيته وتحكمه.","#technology .tag":"02 — اتجاه البحث","#technology .title":"من الإشارات<br>إلى المعنى.","#technology > .intro":"يجمع اتجاه البحث بين علوم الأعصاب ومعالجة الإشارات والتعلم الآلي والتفاعل بين الإنسان والحاسوب.","#technology .card:nth-child(1) .card-number":"01 — الاستشعار","#technology .card:nth-child(1) h3":"إشارات غير جراحية","#technology .card:nth-child(1) p":"استكشاف وسائل خارجية لالتقاط النشاط المرتبط بالدماغ، بما في ذلك تخطيط كهربية الدماغ (EEG) وأساليب الاستشعار غير الجراحية الأخرى.","#technology .card:nth-child(2) .card-number":"02 — الذكاء الاصطناعي","#technology .card:nth-child(2) h3":"تفسير الإشارات","#technology .card:nth-child(2) p":"استخدام أساليب التعلم الآلي للتعرف على الأنماط داخل الإشارات البيولوجية المعقدة والمشوشة.","#technology .card:nth-child(3) .card-number":"03 — النية","#technology .card:nth-child(3) h3":"نية الإنسان","#technology .card:nth-child(3) p":"استكشاف إمكانية تحويل الإشارات العصبية والفسيولوجية إلى أوامر تفاعلية ذات معنى.","#technology .card:nth-child(4) .card-number":"04 — التكيف","#technology .card:nth-child(4) h3":"ذكاء متكيف","#technology .card:nth-child(4) p":"دراسة أنظمة ذكاء اصطناعي يمكنها التكيف مع كل مستخدم بدلًا من الاعتماد على أنماط إشارات متطابقة للجميع.","#technology .card:nth-child(5) .card-number":"05 — إمكانية الوصول","#technology .card:nth-child(5) h3":"تقنيات مساعدة","#technology .card:nth-child(5) p":"قد تشمل التطبيقات المستقبلية دعم التواصل والتفاعل مع الحاسوب للأشخاص ذوي القيود الحركية الشديدة.","#technology .card:nth-child(6) .card-number":"06 — التحكم البشري","#technology .card:nth-child(6) h3":"تصميم يتمحور حول الإنسان","#technology .card:nth-child(6) p":"يُتصور النظام مع التركيز على تحكم المستخدم والسلامة والخصوصية والإشراف البشري الفعّال.","body > section:nth-of-type(3) .tag":"03 — تطبيقات محتملة","body > section:nth-of-type(3) .title":"تكنولوجيا تعزز<br>قدرات الإنسان.","body > section:nth-of-type(3) .intro":"لا يزال البحث استكشافيًا. وقد تشمل التطبيقات المستقبلية التواصل المساعد، والتفاعل مع الحاسوب دون استخدام اليدين، وتقنيات إعادة التأهيل وأدوات إتاحة الوصول.","#responsible .tag":"04 — تقنية عصبية مسؤولة","#responsible .title":"الابتكار يحتاج<br>إلى ضوابط.","#responsible > .intro":"تثير التقنيات المرتبطة بالدماغ أسئلة مهمة حول الخصوصية والموافقة والسلامة والاستقلالية البشرية.<br><br>لذلك تُعد التنمية المسؤولة جزءًا أساسيًا من اتجاه البحث.","#responsible .principle:nth-child(1)":"<strong>الخصوصية</strong><br>حماية المعلومات العصبية والشخصية الحساسة.","#responsible .principle:nth-child(2)":"<strong>الموافقة</strong><br>إبقاء المشاركة الواعية تحت تحكم المستخدم.","#responsible .principle:nth-child(3)":"<strong>السلامة</strong><br>إعطاء الأولوية للبحث غير الجراحي والمراعي للسلامة.","#responsible .principle:nth-child(4)":"<strong>الاستقلالية البشرية</strong><br>ينبغي للتكنولوجيا مساعدة الناس لا أن تحل محل قدرتهم على الاختيار.",".status .tag":"05 — التطوير",".status .title":"من سؤال بحثي<br>إلى تجربة.",".status-box h3":"حالة البحث",".status-box p":"هذا مفهوم بحثي قيد التطوير. يستكشف المشروع المسارات العلمية والتقنية نحو التفاعل غير الجراحي بين الدماغ والحاسوب. ولا تزال هناك حاجة إلى مزيد من التجارب والتحقق والبحث متعدد التخصصات قبل الوصول إلى استنتاجات عملية.","body > section:nth-of-type(6) .tag":"06 — الرؤية","body > section:nth-of-type(6) .title":"واجهة مختلفة<br>بين الإنسان والآلة.","body > section:nth-of-type(6) .intro":"تتمثل الرؤية طويلة المدى في دراسة ما إذا كانت الواجهات الذكية غير الجراحية قادرة على جعل التكنولوجيا أكثر إتاحة للناس مع الحفاظ على السلامة والخصوصية والتحكم البشري.","#contact .tag":"07 — التواصل","#contact .title":"لنستكشف<br>ما الخطوة التالية.","#contact .intro":"للتواصل بشأن الأبحاث والتعاون والابتكار، تواصلي مع هالالويا.","#contact .button":"العودة إلى هالالويا"};
+const titleArabic="واجهة الدماغ غير الجراحية | هالالويا";
+const toggle=document.getElementById("language-toggle");
+if(!toggle)return;
+const englishTitle=document.title;
+function setLanguage(language){
+Object.entries(translations).forEach(([selector,arabic])=>{
+const el=document.querySelector(selector);
+if(!el)return;
+if(!el.dataset.englishHtml)el.dataset.englishHtml=el.innerHTML;
+el.innerHTML=language==="ar"?arabic:el.dataset.englishHtml;
+});
+document.documentElement.lang=language;
+document.documentElement.dir=language==="ar"?"rtl":"ltr";
+document.title=language==="ar"?titleArabic:englishTitle;
+toggle.textContent=language==="ar"?"العربية | EN":"EN | العربية";
+toggle.setAttribute("aria-label",language==="ar"?"Switch to English":"التبديل إلى العربية");
+try{localStorage.setItem("halaloya-language",language);}catch(e){}
+}
+toggle.addEventListener("click",()=>setLanguage(document.documentElement.lang==="ar"?"en":"ar"));
+let saved="en";try{saved=localStorage.getItem("halaloya-language")||"en";}catch(e){}
+setLanguage(saved==="ar"?"ar":"en");
+})();
+</script>
 
 </body>
 </html>
