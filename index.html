@@ -65,8 +65,72 @@ nav a{
 color:#b7bfce;
 text-decoration:none;
 font-size:13px;
-margin-left:28px;
+margin-left:0;
 transition:.3s;
+}
+
+.nav-links{
+display:flex;
+align-items:center;
+gap:22px;
+}
+
+.language-toggle{
+flex-shrink:0;
+border:1px solid #4c5971;
+border-radius:999px;
+padding:9px 13px;
+background:rgba(255,255,255,.04);
+color:#f5f7fb;
+font:inherit;
+font-size:12px;
+cursor:pointer;
+transition:.25s;
+}
+
+.language-toggle:hover{
+background:#fff;
+color:#05070b;
+}
+
+html[dir="rtl"] body{
+direction:rtl;
+}
+
+html[dir="rtl"] nav{
+direction:rtl;
+}
+
+html[dir="rtl"] .hero-content,
+html[dir="rtl"] section{
+text-align:right;
+}
+
+html[dir="rtl"] .about-side{
+border-left:0;
+padding-left:0;
+border-right:1px solid #29303d;
+padding-right:30px;
+}
+
+html[dir="rtl"] .contact{
+text-align:center;
+}
+
+html[dir="rtl"] h1{
+letter-spacing:0;
+direction:ltr;
+text-align:right;
+}
+
+html[dir="rtl"] .buttons{
+flex-direction:row;
+}
+
+@media(max-width:800px){
+.nav-links{display:none;}
+nav{gap:12px;}
+.language-toggle{margin-inline-start:auto;}
 }
 
 nav a:hover{
@@ -355,7 +419,7 @@ nav{
 padding:18px 5%;
 }
 
-nav div:last-child{
+.nav-links{
 display:none;
 }
 
@@ -410,24 +474,11 @@ min-height:300px;
 </head>
 
 <body>
-<!-- أداة ترجمة جوجل -->
-<div id="google_translate_element" style="padding: 10px; text-align: right;"></div>
-
-<script type="text/javascript">
-function googleTranslateElementInit() {
-  new google.translate.TranslateElement({
-    pageLanguage: 'en',
-    includedLanguages: 'ar,en',
-    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-  }, 'google_translate_element');
-}
-</script>
-<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 <nav>
 
 <div class="logo">HALALOYA</div>
 
-<div>
+<div class="nav-links">
 
 <a href="#about">About</a>
 <a href="#projects">Projects</a>
@@ -438,6 +489,8 @@ function googleTranslateElementInit() {
 <a href="#contact">Contact</a>
 
 </div>
+
+<button class="language-toggle" id="language-toggle" type="button" aria-label="Switch language">EN | العربية</button>
 
 </nav>
 
@@ -886,6 +939,105 @@ AI • Innovation • Research
 </span>
 
 </footer>
+
+
+<script>
+(function () {
+  const translations = {
+    "nav a[href=\"#about\"]": "عن هالالويا",
+    "nav a[href=\"#projects\"]": "المشروعات",
+    "nav a[href=\"#responsible\"]": "الذكاء الاصطناعي المسؤول",
+    "nav a[href=\"#research\"]": "الأبحاث",
+    "nav a[href=\"#development\"]": "البحث والتطوير",
+    "nav a[href=\"#contact\"]": "تواصل معنا",
+    ".hero .eyebrow": "الذكاء الاصطناعي • الابتكار • البحث",
+    ".hero h2": "حيث تلتقي الإمكانات البشرية بالتكنولوجيا الذكية.",
+    ".hero .hero-content > p": "منصة مستقلة للابتكار والبحث تستكشف الذكاء الاصطناعي والتكنولوجيا المسؤولة والتقنيات العصبية وتقنية النانو والأفكار العلمية الناشئة.",
+    ".hero .buttons .primary": "استكشفي المشروعات",
+    ".hero .buttons .button:not(.primary)": "استكشفي الأبحاث",
+    "#about .section-tag": "01 — عن هالالويا",
+    "#about .section-title": "من الأفكار إلى<br>التجارب.",
+    "#about .about-text": "تستكشف هالالويا نقاط التقاء الذكاء الاصطناعي والإمكانات البشرية والتقنيات الناشئة.<br><br>وتجمع المنصة بين الأفكار والأبحاث والمفاهيم التجريبية بهدف تحويل التفكير متعدد التخصصات إلى حلول تقنية ذات قيمة.",
+    "#about .about-side": "<strong>الذكاء الاصطناعي</strong>أنظمة ذكية<br><br><strong>الإنسان</strong>ابتكار يتمحور حول الإنسان<br><br><strong>المستقبل</strong>تقنيات ناشئة",
+    "#projects .section-tag": "02 — الابتكار",
+    "#projects .section-title": "مشروعات قيد التطوير.",
+    "#projects .section-intro": "مجموعة من الأفكار التجريبية والمفاهيم التقنية التي تستكشف إمكانات جديدة في الذكاء الاصطناعي وعلوم الأعصاب وتقنية النانو والابتكار المسؤول.",
+    ".projects-grid .project:nth-child(1) .project-number": "المشروع 01",
+    ".projects-grid .project:nth-child(1) p": "منصة مدعومة بالذكاء الاصطناعي لمساندة النساء في مرحلة جديدة من الحياة عبر التفاعل الشخصي والذاكرة والذكاء العاطفي والتخطيط للرحلة الشخصية.",
+    ".projects-grid .project:nth-child(1) .project-link": "استكشاف المشروع ←",
+    ".projects-grid .project:nth-child(2) .project-number": "المشروع 02",
+    ".projects-grid .project:nth-child(2) h3": "واجهة دماغية غير جراحية",
+    ".projects-grid .project:nth-child(2) p": "استكشاف مفاهيم واجهات الدماغ والحاسوب المدعومة بالذكاء الاصطناعي بهدف تمكين التفاعل بين الإنسان والحاسوب دون زرع جراحي داخل الدماغ.",
+    ".projects-grid .project:nth-child(2) .project-link": "مفهوم بحثي ←",
+    ".projects-grid .project:nth-child(3) .project-number": "المشروع 03",
+    ".projects-grid .project:nth-child(3) p": "استكشاف تحليل ذكي للتربة والبيئة لتطبيقات مرتبطة بقطاع البترول من خلال الجمع بين تقنية النانو والاستشعار والذكاء الاصطناعي.",
+    ".projects-grid .project:nth-child(3) .project-link": "مفهوم بحثي ←",
+    ".projects-grid .project:nth-child(4) .project-number": "المشروع 04",
+    ".projects-grid .project:nth-child(4) h3": "الذكاء الاصطناعي المسؤول",
+    ".projects-grid .project:nth-child(4) p": "استكشاف أساليب عملية للشفافية والإشراف البشري والخصوصية والإنصاف والمساءلة في المنتجات والخدمات المدعومة بالذكاء الاصطناعي.",
+    ".projects-grid .project:nth-child(4) .project-link": "استكشاف المبادئ ←",
+    "#responsible .section-tag": "03 — الذكاء الاصطناعي المسؤول",
+    "#responsible .section-title": "تكنولوجيا بمسؤولية.",
+    "#responsible .responsible-box h3": "المسؤولية جزء من التصميم.",
+    "#responsible .responsible-box > p": "تستكشف هالالويا أساليب مسؤولة للذكاء الاصطناعي مع الاهتمام بالشفافية والإنصاف والخصوصية والمساءلة والإشراف البشري الفعّال. والهدف هو تطوير تكنولوجيا لا تقتصر على الابتكار، بل تراعي أيضًا القيم الإنسانية واحتياجات المجتمع.",
+    "#responsible .principle:nth-child(1)": "الشفافية",
+    "#responsible .principle:nth-child(2)": "الإنصاف",
+    "#responsible .principle:nth-child(3)": "الخصوصية",
+    "#responsible .principle:nth-child(4)": "الإشراف البشري",
+    "#research .section-tag": "04 — الأبحاث",
+    "#research .section-title": "أسئلة تستحق<br>الاستكشاف.",
+    "#research .section-intro": "اهتمامات بحثية متعددة التخصصات تربط الذكاء الاصطناعي بعلوم الأعصاب وتقنية النانو والطاقة والتكنولوجيا التي تتمحور حول الإنسان.",
+    "#research .research-card:nth-child(1) h3": "الذكاء الاصطناعي",
+    "#research .research-card:nth-child(1) p": "الذكاء الاصطناعي المسؤول، والأنظمة التي تتمحور حول الإنسان، ووكلاء الذكاء الاصطناعي، والتطبيقات الذكية والبنى الناشئة للذكاء الاصطناعي.",
+    "#research .research-card:nth-child(2) h3": "التقنيات العصبية",
+    "#research .research-card:nth-child(2) p": "واجهات الدماغ والحاسوب، والاستشعار غير الجراحي، وتفسير النوايا البشرية بمساعدة الذكاء الاصطناعي.",
+    "#research .research-card:nth-child(3) h3": "تقنية النانو",
+    "#research .research-card:nth-child(3) p": "استكشاف الاستشعار على المستوى النانوي والتحليل الذكي للتطبيقات البيئية والصناعية.",
+    "#research .research-card:nth-child(4) h3": "التقنيات الناشئة",
+    "#research .research-card:nth-child(4) p": "استكشاف متعدد التخصصات للطاقة والتكنولوجيا المتقدمة وأنظمة الإنسان والآلة المستقبلية.",
+    "#development .section-tag": "05 — البحث والتطوير",
+    "#development .section-title": "من الأسئلة إلى<br>الاحتمالات.",
+    "#development .section-intro": "تستكشف هالالويا التقنيات الناشئة من خلال نهج للبحث والتطوير يربط الأسئلة العلمية بالمفاهيم التجريبية والإمكانات التكنولوجية المستقبلية.",
+    "#development .research-card:nth-child(1) h3": "الأسئلة البحثية",
+    "#development .research-card:nth-child(1) p": "استكشاف الأسئلة العلمية والتقنية عند تقاطع الذكاء الاصطناعي وعلوم الأعصاب وتقنية النانو والتكنولوجيا التي تتمحور حول الإنسان.",
+    "#development .research-card:nth-child(2) h3": "المفاهيم التجريبية",
+    "#development .research-card:nth-child(2) p": "تطوير مفاهيم متعددة التخصصات يمكن استكشافها واختبارها وتحسينها من خلال البحث والتجربة وتقنيات الذكاء الاصطناعي الناشئة.",
+    "#development .research-card:nth-child(3) h3": "استكشاف التكنولوجيا",
+    "#development .research-card:nth-child(3) p": "بحث كيفية دمج التقنيات الناشئة لابتكار أساليب جديدة للتعامل مع التحديات الإنسانية والعلمية والصناعية المعقدة.",
+    "#development .research-card:nth-child(4) h3": "نماذج أولية مستقبلية",
+    "#development .research-card:nth-child(4) p": "استكشاف المسارات التي تنقل المفاهيم البحثية إلى أنظمة إثبات مفهوم ونماذج أولية وعروض تقنية مستقبلية.",
+    "#contact .section-tag": "06 — التواصل",
+    "#contact .section-title": "لنستكشف<br>الخطوة التالية.",
+    "#contact .section-intro": "للتواصل بشأن الأبحاث والابتكار والتعاون والفرص التقنية، تواصلي مع هالالويا.",
+    "#contact .button": "تواصلي مع هالالويا"
+  };
+
+  const button = document.getElementById("language-toggle");
+  if (!button) return;
+
+  function setLanguage(language) {
+    Object.entries(translations).forEach(([selector, arabic]) => {
+      const element = document.querySelector(selector);
+      if (!element) return;
+      if (!element.dataset.englishHtml) element.dataset.englishHtml = element.innerHTML;
+      element.innerHTML = language === "ar" ? arabic : element.dataset.englishHtml;
+    });
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+    button.textContent = language === "ar" ? "العربية | EN" : "EN | العربية";
+    button.setAttribute("aria-label", language === "ar" ? "Switch to English" : "التبديل إلى العربية");
+    try { localStorage.setItem("halaloya-language", language); } catch (e) {}
+  }
+
+  button.addEventListener("click", function () {
+    setLanguage(document.documentElement.lang === "ar" ? "en" : "ar");
+  });
+
+  let savedLanguage = "en";
+  try { savedLanguage = localStorage.getItem("halaloya-language") || "en"; } catch (e) {}
+  setLanguage(savedLanguage === "ar" ? "ar" : "en");
+})();
+</script>
 
 </body>
 </html>
