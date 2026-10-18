@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="HalaLoya AI Drilling Assistant: an early-stage concept combining pre-drilling sample analysis and live drilling-data monitoring to support risk assessment and human decision-making.">
+<meta property="og:title" content="HalaLoya AI Drilling Assistant | Research Concept">
+<meta property="og:description" content="A conceptual architecture for pre-drilling assessment and drilling-time risk monitoring with AI-assisted decision support.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://halas9370-a11y.github.io/ai-drilling-assistant.html">
+<title>HalaLoya AI Drilling Assistant | Research Concept</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{color-scheme:dark}
+body{font-family:Arial,Helvetica,sans-serif;background:#05070b;color:#f5f7fb;line-height:1.7}
+nav{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 7%;background:rgba(5,7,11,.92);backdrop-filter:blur(16px);border-bottom:1px solid #202938}
+.logo{font-weight:700;letter-spacing:4px;font-size:20px}
+nav a{color:#c3ccda;text-decoration:none;font-size:14px}
+button{border:1px solid #4c5971;border-radius:999px;padding:9px 14px;background:#101722;color:#f5f7fb;cursor:pointer}
+main{max-width:1180px;margin:auto;padding:55px 24px 80px}
+.eyebrow{font-size:12px;letter-spacing:3px;color:#7e91aa;margin-bottom:18px}
+h1{font-size:clamp(38px,7vw,76px);line-height:1.03;letter-spacing:-2px;margin-bottom:22px}
+h2{font-size:clamp(27px,4vw,42px);line-height:1.15;margin:52px 0 18px}
+h3{font-size:21px;margin-bottom:10px}
+.lead{font-size:19px;color:#b4c0d0;max-width:900px}
+.status{margin-top:25px;border:1px solid #31576a;background:#0a1821;padding:16px 18px;border-radius:14px;color:#d0e7ef}
+.diagram{margin:34px 0 18px;border:1px solid #273849;border-radius:18px;overflow:hidden;background:#080d15}
+.diagram img{display:block;width:100%;height:auto}
+.caption{font-size:13px;color:#8d9caf;margin-top:10px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:24px}
+.card{padding:23px;border:1px solid #263142;border-radius:16px;background:linear-gradient(145deg,#0b1018,#070a10)}
+.card p,li{color:#b0bbca}
+ul,ol{padding-inline-start:23px}
+li{margin:8px 0}
+.protection{margin-top:36px;padding:24px;border:1px solid #9b6e32;background:#1b160e;border-radius:16px}
+.protection h2{font-size:25px;margin:0 0 12px;color:#f2d49a}
+.protection p{color:#e4d7bd;margin:9px 0}
+.small{font-size:13px;color:#9ca8b8}
+footer{border-top:1px solid #202938;padding:25px 7%;color:#8995a7;font-size:12px}
+html[dir=rtl] body{direction:rtl}
+html[dir=rtl] h1{letter-spacing:0}
+html[dir=rtl] .eyebrow{letter-spacing:1px}
+html[dir=rtl] nav{direction:rtl}
+html[dir=rtl] main{text-align:right}
+@media(max-width:720px){nav{padding:15px 5%;flex-wrap:wrap}.grid{grid-template-columns:1fr}main{padding:40px 18px 60px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="logo" href="index.html">HALALOYA</a>
+  <div style="display:flex;align-items:center;gap:16px">
+    <a href="index.html" data-en="Home" data-ar="الرئيسية">Home</a>
+    <button id="language-toggle" type="button">EN | العربية</button>
+  </div>
+</nav>
+<main>
+  <div class="eyebrow" data-en="RESEARCH & DEVELOPMENT • EARLY-STAGE CONCEPT" data-ar="البحث والتطوير • مفهوم في مرحلة مبكرة">RESEARCH & DEVELOPMENT • EARLY-STAGE CONCEPT</div>
+  <h1 data-en="HalaLoya AI Drilling Assistant" data-ar="HalaLoya — المساعد الذكي للحفر">HalaLoya AI Drilling Assistant</h1>
+  <p class="lead" data-en="A proposed decision-support system that starts with pre-drilling sample and geological assessment, then monitors available drilling data to help engineers identify potential risks earlier." data-ar="نظام مقترح لدعم القرار يبدأ بتحليل العينات والبيانات الجيولوجية قبل الحفر، ثم يراقب بيانات الحفر المتاحة لمساعدة المهندسين على اكتشاف المخاطر المحتملة مبكرًا.">A proposed decision-support system that starts with pre-drilling sample and geological assessment, then monitors available drilling data to help engineers identify potential risks earlier.</p>
+  <div class="status" data-en="Current status: research concept only. No integrated prototype, field trial, prediction accuracy or operational performance has been validated." data-ar="الحالة الحالية: مفهوم بحثي فقط. لم يتم التحقق من نموذج متكامل أو تجربة ميدانية أو دقة تنبؤ أو أداء تشغيلي.">Current status: research concept only. No integrated prototype, field trial, prediction accuracy or operational performance has been validated.</div>
+
+  <figure class="diagram">
+    <img src="assets/halaloya-ai-drilling-assistant.svg" alt="Concept diagram of HalaLoya AI drilling assistant, from pre-drilling samples and live drilling data to AI risk assessment and engineer review" loading="lazy">
+  </figure>
+  <p class="caption" data-en="Conceptual architecture only. It does not represent a tested product or a claim of measured performance." data-ar="معمارية تصورية فقط؛ لا تمثل منتجًا مختبرًا ولا ادعاءً بأداء تم قياسه.">Conceptual architecture only. It does not represent a tested product or a claim of measured performance.</p>
+
+  <h2 data-en="How the proposed system could work" data-ar="كيف يمكن أن يعمل النظام المقترح">How the proposed system could work</h2>
+  <div class="grid">
+    <article class="card">
+      <h3 data-en="1. Before drilling" data-ar="١. قبل الحفر">1. Before drilling</h3>
+      <p data-en="Review soil or rock sample results, geological information and permitted records from nearby wells. A surface soil sample alone cannot establish conditions at deep drilling intervals." data-ar="مراجعة نتائج عينات التربة أو الصخور والمعلومات الجيولوجية وسجلات الآبار القريبة المصرح باستخدامها. عينة التربة السطحية وحدها لا تحدد ظروف الطبقات العميقة.">Review soil or rock sample results, geological information and permitted records from nearby wells. A surface soil sample alone cannot establish conditions at deep drilling intervals.</p>
+    </article>
+    <article class="card">
+      <h3 data-en="2. During drilling" data-ar="٢. أثناء الحفر">2. During drilling</h3>
+      <p data-en="Where authorized data access exists, ingest measurements such as rate of penetration, weight on bit, torque, pressure, and relevant drilling-fluid or flow data." data-ar="عند توافر صلاحية الوصول للبيانات، يستقبل النظام قياسات مثل معدل الاختراق ووزن عمود الحفر والعزم والضغط وبيانات طين الحفر أو التدفق ذات الصلة.">Where authorized data access exists, ingest measurements such as rate of penetration, weight on bit, torque, pressure, and relevant drilling-fluid or flow data.</p>
+    </article>
+    <article class="card">
+      <h3 data-en="3. Risk-specific analysis" data-ar="٣. تحليل مستقل لكل خطر">3. Risk-specific analysis</h3>
+      <p data-en="Develop and validate separate models for a defined event, beginning with a candidate such as lost-circulation risk if suitable historical data can be obtained." data-ar="تطوير نماذج مستقلة والتحقق منها لكل حدث محدد، مع دراسة فقدان سوائل الحفر كخيار أول إذا أمكن الحصول على بيانات تاريخية مناسبة.">Develop and validate separate models for a defined event, beginning with a candidate such as lost-circulation risk if suitable historical data can be obtained.</p>
+    </article>
+    <article class="card">
+      <h3 data-en="4. Engineer-reviewed warning" data-ar="٤. تحذير يراجعه المهندس">4. Engineer-reviewed warning</h3>
+      <p data-en="Display the potential risk, supporting signals, uncertainty and data-quality limits. The experimental system remains advisory and does not control drilling equipment." data-ar="عرض الخطر المحتمل والمؤشرات الداعمة وعدم اليقين وحدود جودة البيانات. يظل النظام التجريبي مساعدًا ولا يتحكم في معدات الحفر.">Display the potential risk, supporting signals, uncertainty and data-quality limits. The experimental system remains advisory and does not control drilling equipment.</p>
+    </article>
+  </div>
+
+  <h2 data-en="Candidate research scope" data-ar="نطاق بحثي مبدئي">Candidate research scope</h2>
+  <ul>
+    <li data-en="First candidate: early assessment of lost-circulation risk, subject to data availability and engineering review." data-ar="الخيار الأول: تقييم مبكر لخطر فقدان سوائل الحفر، وفق توافر البيانات والمراجعة الهندسية.">First candidate: early assessment of lost-circulation risk, subject to data availability and engineering review.</li>
+    <li data-en="Potential later directions: indicators associated with wellbore instability and unusual operating trends, each requiring its own data and validation." data-ar="مسارات لاحقة محتملة: مؤشرات مرتبطة بعدم استقرار جدار البئر والتغيرات التشغيلية غير المعتادة، ويحتاج كل منها إلى بيانات وتحقق مستقلين.">Potential later directions: indicators associated with wellbore instability and unusual operating trends, each requiring its own data and validation.</li>
+    <li data-en="Nanotechnology is an optional research component only if a sensor demonstrably adds useful measurements compared with existing methods." data-ar="تقنية النانو مكوّن بحثي اختياري فقط إذا ثبت أن المستشعر يضيف قياسات مفيدة مقارنة بالطرق المتاحة.">Nanotechnology is an optional research component only if a sensor demonstrably adds useful measurements compared with existing methods.</li>
+  </ul>
+
+  <h2 data-en="Proof-of-concept roadmap" data-ar="خطة إثبات المفهوم">Proof-of-concept roadmap</h2>
+  <ol>
+    <li data-en="Secure permission to use anonymized historical well data with time, depth, operating measurements and labeled events." data-ar="الحصول على تصريح باستخدام بيانات آبار تاريخية منزوعة التعريف، تشمل التوقيت والعمق وقياسات التشغيل والأحداث المسجلة.">Secure permission to use anonymized historical well data with time, depth, operating measurements and labeled events.</li>
+    <li data-en="Define one target event and compare a simple baseline with a risk-specific machine-learning model." data-ar="تحديد حدث واحد للمخاطر ومقارنة خط أساس بسيط بنموذج تعلم آلي مخصص لهذا الخطر.">Define one target event and compare a simple baseline with a risk-specific machine-learning model.</li>
+    <li data-en="Test on wells excluded from training and report recall, precision, false alarms, warning lead time and uncertainty." data-ar="الاختبار على آبار لم تدخل التدريب، مع توثيق الاستدعاء والدقة الإيجابية والإنذارات الكاذبة ووقت التحذير وعدم اليقين.">Test on wells excluded from training and report recall, precision, false alarms, warning lead time and uncertainty.</li>
+    <li data-en="Only after independent review consider a read-only connection to rig data; no control commands in the experimental prototype." data-ar="بعد مراجعة مستقلة فقط، يمكن دراسة اتصال للقراءة فقط ببيانات جهاز الحفر؛ ولا تُرسل أوامر تحكم في النموذج التجريبي.">Only after independent review consider a read-only connection to rig data; no control commands in the experimental prototype.</li>
+  </ol>
+
+  <section class="protection" aria-labelledby="rights-heading">
+    <h2 id="rights-heading" data-en="Copyright notice & concept disclosure" data-ar="إشعار حقوق المحتوى وتوثيق المفهوم">Copyright notice & concept disclosure</h2>
+    <p data-en="© 2026 Hala Hashem / HalaLoya. The original diagram, page text, and specific presentation are attributed to Hala Hashem / HalaLoya. Unauthorized copying, reproduction, or reuse of these materials without prior written permission is not permitted." data-ar="© 2026 هالة هاشم / HalaLoya. يُنسب المخطط الأصلي ونص الصفحة وطريقة عرضها إلى هالة هاشم / HalaLoya. لا يُسمح بنسخ هذه المواد أو إعادة إنتاجها أو استخدامها دون إذن كتابي مسبق.">© 2026 Hala Hashem / HalaLoya. The original diagram, page text, and specific presentation are attributed to Hala Hashem / HalaLoya. Unauthorized copying, reproduction, or reuse of these materials without prior written permission is not permitted.</p>
+    <p data-en="Important: this notice records an authorship claim and public disclosure date; it is not proof of a registered patent or exclusive ownership of the general idea. Patent rights, novelty and protection depend on applicable law and formal procedures. If patent protection is being considered, seek qualified IP advice before making further technical disclosures." data-ar="تنبيه مهم: يوثق هذا الإشعار ادعاء نسبة المحتوى وتاريخ إعلانه، لكنه لا يُعد دليلًا على تسجيل براءة اختراع أو ملكية حصرية للفكرة العامة. تعتمد حقوق البراءات والجِدّة والحماية على القانون والإجراءات الرسمية. إذا كنتِ تفكرين في طلب براءة، فاستشيري مختصًا في الملكية الفكرية قبل نشر تفاصيل تقنية إضافية.">Important: this notice records an authorship claim and public disclosure date; it is not proof of a registered patent or exclusive ownership of the general idea. Patent rights, novelty and protection depend on applicable law and formal procedures. If patent protection is being considered, seek qualified IP advice before making further technical disclosures.</p>
+  </section>
+</main>
+<footer>
+  <span>© 2026 Hala Hashem / HalaLoya</span>
+  <span data-en="Early-stage research concept • Not a validated product" data-ar="مفهوم بحثي في مرحلة مبكرة • ليس منتجًا تم التحقق منه">Early-stage research concept • Not a validated product</span>
+</footer>
+<script>
+(function(){
+ const btn=document.getElementById('language-toggle');
+ function setLanguage(lang){
+  document.documentElement.lang=lang;
+  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  document.querySelectorAll('[data-en][data-ar]').forEach(el=>{el.textContent=lang==='ar'?el.dataset.ar:el.dataset.en;});
+  btn.textContent=lang==='ar'?'العربية | EN':'EN | العربية';
+  btn.setAttribute('aria-label',lang==='ar'?'التبديل إلى الإنجليزية':'Switch to Arabic');
+ }
+ btn.addEventListener('click',()=>setLanguage(document.documentElement.lang==='ar'?'en':'ar'));
+ setLanguage('en');
+})();
+</script>
+</body>
+</html>
