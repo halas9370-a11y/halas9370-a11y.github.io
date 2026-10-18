@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+<title id="title">HalaLoya AI Drilling Assistant — conceptual architecture</title>
+<desc id="desc">A conceptual workflow connecting pre-drilling sample and geological analysis with live drilling data, AI risk assessment, and a human-reviewed warning dashboard.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#080d17"/><stop offset="1" stop-color="#101c2b"/></linearGradient>
+  <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#36d6cf"/><stop offset="1" stop-color="#529bff"/></linearGradient>
+  <filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0,0 L10,6 L0,12 Z" fill="#53cbd7"/></marker>
+  <style>
+    .heading{font:700 37px Arial,sans-serif;fill:#f4f8ff}
+    .sub{font:22px Arial,sans-serif;fill:#9eb1c8}
+    .cardtitle{font:700 26px Arial,sans-serif;fill:#f4f8ff}
+    .body{font:20px Arial,sans-serif;fill:#c1cede}
+    .ar{font:21px Arial,sans-serif;fill:#c1cede}
+    .tiny{font:16px Arial,sans-serif;fill:#92a3b8}
+    .line{stroke:#53cbd7;stroke-width:4;fill:none;marker-end:url(#arrow)}
+    .card{fill:#0d1725;stroke:#2d455b;stroke-width:2}
+  </style>
+</defs>
+<rect width="1600" height="1050" rx="30" fill="url(#bg)"/>
+<circle cx="1350" cy="90" r="240" fill="#2467a8" opacity=".12"/>
+<circle cx="140" cy="930" r="260" fill="#20bcb0" opacity=".08"/>
+<text x="800" y="72" text-anchor="middle" class="heading">HALALOYA AI DRILLING ASSISTANT</text>
+<text x="800" y="112" text-anchor="middle" class="sub">Concept architecture • Pre-drilling assessment + live monitoring</text>
+<text x="800" y="150" text-anchor="middle" class="ar">تصور لنظام متكامل: تقييم قبل الحفر ومراقبة أثناء التشغيل</text>
+<!-- left top -->
+<rect x="70" y="205" width="430" height="220" rx="22" class="card"/>
+<circle cx="125" cy="262" r="26" fill="#143e50" stroke="#36d6cf" stroke-width="2"/>
+<path d="M110 252 L140 252 M115 262 L135 262 M120 272 L130 272" stroke="#7be7df" stroke-width="4" stroke-linecap="round"/>
+<text x="170" y="260" class="cardtitle">01  Pre-drilling inputs</text>
+<text x="105" y="310" class="body">Soil / rock samples • lab results</text>
+<text x="105" y="342" class="body">Geology • nearby well records</text>
+<text x="105" y="385" class="ar">عينات ونتائج معملية وبيانات جيولوجية</text>
+<!-- left bottom -->
+<rect x="70" y="570" width="430" height="220" rx="22" class="card"/>
+<circle cx="125" cy="627" r="26" fill="#143e50" stroke="#36d6cf" stroke-width="2"/>
+<path d="M112 613 L138 613 L133 641 L117 641 Z M118 620 L132 620 M120 628 L130 628" stroke="#7be7df" stroke-width="3" fill="none"/>
+<text x="170" y="625" class="cardtitle">02  Live drilling data</text>
+<text x="105" y="675" class="body">ROP • WOB • torque • pressure</text>
+<text x="105" y="707" class="body">Mud / flow data where available</text>
+<text x="105" y="750" class="ar">بيانات الحفر والطين والتدفق حسب التوافر</text>
+<!-- center -->
+<rect x="600" y="330" width="400" height="330" rx="28" fill="#0c1c2b" stroke="url(#accent)" stroke-width="4" filter="url(#glow)"/>
+<circle cx="800" cy="395" r="38" fill="#103b50" stroke="#45d4d0" stroke-width="2"/>
+<path d="M780 395 L793 408 L821 378" fill="none" stroke="#8cf4e9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="800" y="465" text-anchor="middle" class="cardtitle">HalaLoya AI Risk Engine</text>
+<text x="800" y="510" text-anchor="middle" class="body">Data quality + engineering rules</text>
+<text x="800" y="542" text-anchor="middle" class="body">Risk-specific predictive models</text>
+<text x="800" y="588" text-anchor="middle" class="ar">جودة البيانات + قواعد هندسية</text>
+<text x="800" y="620" text-anchor="middle" class="ar">نماذج تنبؤ مستقلة لكل خطر</text>
+<!-- right -->
+<rect x="1100" y="205" width="430" height="220" rx="22" class="card"/>
+<circle cx="1155" cy="262" r="26" fill="#352b1b" stroke="#f0c66c" stroke-width="2"/>
+<path d="M1155 243 L1171 274 L1139 274 Z" fill="none" stroke="#f7d88a" stroke-width="3"/><path d="M1155 253 L1155 263 M1155 268 L1155 269" stroke="#f7d88a" stroke-width="3" stroke-linecap="round"/>
+<text x="1200" y="260" class="cardtitle">03  Risk assessment</text>
+<text x="1135" y="310" class="body">Potential event + evidence</text>
+<text x="1135" y="342" class="body">Confidence + uncertainty</text>
+<text x="1135" y="385" class="ar">الخطر المحتمل والأدلة ودرجة عدم اليقين</text>
+<!-- right bottom -->
+<rect x="1100" y="570" width="430" height="220" rx="22" class="card"/>
+<circle cx="1155" cy="627" r="26" fill="#173c30" stroke="#6ad8a1" stroke-width="2"/>
+<rect x="1142" y="615" width="26" height="22" rx="3" fill="none" stroke="#8bf0b9" stroke-width="3"/><path d="M1147 621 L1163 621 M1147 627 L1160 627 M1147 633 L1157 633" stroke="#8bf0b9" stroke-width="2"/>
+<text x="1200" y="625" class="cardtitle">04  Engineer dashboard</text>
+<text x="1135" y="675" class="body">Warning • explanation • review</text>
+<text x="1135" y="707" class="body">Human decision remains in control</text>
+<text x="1135" y="750" class="ar">تحذير وتفسير ومراجعة المهندس</text>
+<!-- arrows -->
+<path d="M500 315 C550 315 545 390 600 405" class="line"/>
+<path d="M500 680 C550 680 545 600 600 585" class="line"/>
+<path d="M1000 405 C1050 390 1050 315 1100 315" class="line"/>
+<path d="M1000 585 C1050 600 1050 680 1100 680" class="line"/>
+<path d="M815 660 L815 720" stroke="#f0c66c" stroke-width="3" stroke-dasharray="8 8" fill="none"/>
+<rect x="520" y="735" width="550" height="90" rx="16" fill="#211c12" stroke="#b38a3c" stroke-width="2"/>
+<text x="795" y="770" text-anchor="middle" style="font:700 21px Arial,sans-serif;fill:#f3d48c">SAFETY BOUNDARY • HUMAN REVIEW</text>
+<text x="795" y="800" text-anchor="middle" style="font:18px Arial,sans-serif;fill:#d9c69d">No direct rig control in the experimental prototype</text>
+<text x="800" y="885" text-anchor="middle" class="tiny">Concept only — no prototype performance or prediction accuracy has been validated.</text>
+<text x="800" y="914" text-anchor="middle" class="ar">مخطط تصوري فقط؛ لم يتم التحقق من أداء نموذج أو دقة تنبؤاته.</text>
+<line x1="90" y1="960" x2="1510" y2="960" stroke="#26384a" stroke-width="2"/>
+<text x="800" y="995" text-anchor="middle" style="font:700 17px Arial,sans-serif;fill:#90a6bf">© Hala Hashem / HalaLoya • Research concept disclosure • 2026</text>
+</svg>
