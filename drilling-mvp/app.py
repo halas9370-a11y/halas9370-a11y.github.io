@@ -173,17 +173,36 @@ if numeric_cols:
 
 # Optional exploratory classifier. This is not an operational prediction tool.
 baseline_results = st.session_state.get("baseline_eval_results")
-if baseline_results and baseline_results.get("dataset_fingerprint") != dataset_fingerprint:
+if baseline_results and (
+    baseline_results.get("dataset_fingerprint") != dataset_fingerprint
+    or baseline_results.get("validation_method") != st.session_state.get("baseline_split_method")
+):
     st.session_state.pop("baseline_eval_results", None)
     baseline_results = None
 
 if target_column is not None:
     st.subheader("Exploratory model baseline (research only)")
-    st.warning(
-        "This experiment uses a random row-level split. Records from the same well or "
-        "nearby depths may appear in both sets, so these metrics do not prove performance "
-        "on unseen wells or other fields. Do not use predictions for operational decisions."
+    split_method = st.radio(
+        "Choose an evaluation split",
+        [
+            "Random stratified row split",
+            "Depth-block stress test (lower depths → higher depths)",
+        ],
+        key="baseline_split_method",
     )
+    if split_method == "Random stratified row split":
+        st.warning(
+            "Random row-level split: records from the same well or nearby depths may appear "
+            "in both sets. These metrics do not prove performance on unseen wells or other "
+            "fields. Do not use predictions for operational decisions."
+        )
+    else:
+        st.warning(
+            "Depth-block stress test: train on the lower measured-depth range and test on "
+            "the higher range. This can reveal sensitivity to depth shift, but the same wells "
+            "may still appear in both sets; it is not a well-held-out test. Do not use "
+            "predictions for operational decisions."
+        )
     feature_columns = [
         col for col in df.select_dtypes(include="number").columns.tolist()
         if col != target_column
@@ -209,20 +228,60 @@ if target_column is not None:
                 counts = y.value_counts()
                 if len(usable) < 50 or y.nunique() < 2:
                     st.error("There are not enough labeled records/classes for this experiment.")
-                elif (counts < 2).any():
+                elif split_method == "Random stratified row split" and (counts < 2).any():
                     st.error(
                         "At least one target class has fewer than two usable records; "
                         "a stratified train/test split cannot be performed reliably."
                     )
                 else:
                     class_names = sorted(y.unique().tolist())
-                    X_train, X_test, y_train, y_test = train_test_split(
-                        X,
-                        y,
-                        test_size=0.30,
-                        random_state=42,
-                        stratify=y,
-                    )
+                    depth_cutoff = None
+                    if split_method == "Random stratified row split":
+                        X_train, X_test, y_train, y_test = train_test_split(
+                            X,
+                            y,
+                            test_size=0.30,
+                            random_state=42,
+                            stratify=y,
+                        )
+                        validation_limitation = (
+                            "Random row-level split; no well-level holdout because the visible "
+                            "columns do not identify wells. Metrics are exploratory only."
+                        )
+                    else:
+                        depth_column = next(
+                            (
+                                col for col in feature_columns
+                                if "".join(char.lower() for char in str(col) if char.isalnum()) == "mdepth"
+                            ),
+                            None,
+                        )
+                        if depth_column is None:
+                            st.error(
+                                "The depth-block stress test requires a numeric M.Depth column."
+                            )
+                            st.stop()
+                        unique_depths = np.sort(pd.to_numeric(usable[depth_column], errors="coerce").dropna().unique())
+                        if len(unique_depths) < 5:
+                            st.error("There are too few unique depth values for a depth-block test.")
+                            st.stop()
+                        depth_index = min(max(int(len(unique_depths) * 0.70), 1), len(unique_depths) - 1)
+                        depth_cutoff = float(unique_depths[depth_index])
+                        train_mask = pd.to_numeric(usable[depth_column], errors="coerce") < depth_cutoff
+                        test_mask = ~train_mask
+                        X_train, X_test = X.loc[train_mask], X.loc[test_mask]
+                        y_train, y_test = y.loc[train_mask], y.loc[test_mask]
+                        if len(y_train) < 50 or len(y_test) < 10 or y_train.nunique() < 2:
+                            st.error(
+                                "The depth-block split produced too few rows or fewer than two "
+                                "training classes; this dataset cannot support this split as configured."
+                            )
+                            st.stop()
+                        validation_limitation = (
+                            "Depth-block sensitivity test: train on measured depths below the "
+                            "70th-percentile unique-depth cutoff and test on depths at/above it. "
+                            "It is not a well-held-out test; wells may still overlap across partitions."
+                        )
                     majority = DummyClassifier(strategy="most_frequent")
                     majority.fit(X_train, y_train)
                     majority_pred = majority.predict(X_test)
@@ -266,7 +325,10 @@ if target_column is not None:
                         "model": "RandomForestClassifier",
                         "baseline": "DummyClassifier(strategy='most_frequent')",
                         "random_state": 42,
-                        "test_size": 0.30,
+                        "validation_method": split_method,
+                        "test_size": round(float(len(y_test) / len(usable)), 6),
+                        "depth_cutoff": depth_cutoff,
+                        "training_rows": int(len(y_train)),
                         "rows_used": int(len(usable)),
                         "rows_dropped_for_missing_or_non_numeric_values": int(dropped_rows),
                         "feature_columns": [str(col) for col in feature_columns],
@@ -280,10 +342,7 @@ if target_column is not None:
                         "per_class_metrics": per_class,
                         "confusion_matrix": cm.tolist(),
                         "top_feature_importances": top_features,
-                        "validation_limitation": (
-                            "Random row-level split; no well-level holdout because the visible "
-                            "columns do not identify wells. Metrics are exploratory only."
-                        ),
+                        "validation_limitation": validation_limitation,
                     }
                     baseline_results = st.session_state["baseline_eval_results"]
             except Exception as exc:
@@ -332,8 +391,14 @@ if target_column is not None:
             st.warning(
                 "Interpret each class metric using its test support. The complete-loss class "
                 "has very few examples, so its score can change sharply with a small number "
-                "of errors. This random split does not test generalization to unseen wells."
+                "of errors. Neither split proves generalization to unseen wells."
             )
+            st.caption(f"Evaluation method: {baseline_results.get('validation_method', 'not recorded')}")
+            if baseline_results.get("depth_cutoff") is not None:
+                st.caption(
+                    f"Depth-block cutoff: M.Depth = {baseline_results['depth_cutoff']:g}; "
+                    "lower depths were used for training and depths at/above the cutoff for testing."
+                )
 
             # Put the evaluation download next to the model results for easy access.
             model_evaluation_report = {
@@ -352,7 +417,7 @@ if target_column is not None:
                 },
                 "limitations": [
                     "Experimental classification baseline only; not an operational prediction tool.",
-                    "Random row-level split may place records from the same well in training and test sets.",
+                    baseline_results.get("validation_limitation", "Validation limitation not recorded."),
                     "Metrics do not prove generalization to unseen wells, operators, formations, or fields.",
                     "Rare severe/complete-loss class metrics may be unstable due to low support.",
                     "Not validated for drilling operations or safety-critical decisions."
