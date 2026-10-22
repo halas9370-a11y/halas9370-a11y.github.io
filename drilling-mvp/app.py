@@ -72,6 +72,48 @@ summary = pd.DataFrame({
 })
 st.dataframe(summary, use_container_width=True, hide_index=True)
 
+# If the known label column is present, show its distribution automatically.
+target_column = next(
+    (
+        col for col in df.columns
+        if "".join(char.lower() for char in str(col) if char.isalnum()) == "lossesseverity"
+    ),
+    None,
+)
+target_distribution_records = None
+if target_column is not None:
+    target_counts = (
+        df[target_column].astype("string").fillna("[Missing]").astype(str).value_counts(dropna=False)
+    )
+    target_distribution = pd.DataFrame({
+        "class": target_counts.index.astype(str),
+        "count": target_counts.to_numpy(dtype=int),
+        "percent": (target_counts.to_numpy(dtype=float) / len(df) * 100).round(3),
+    })
+    target_distribution_records = target_distribution.to_dict(orient="records")
+
+    st.subheader("Loss severity class distribution")
+    st.caption(
+        f"Detected label column: {target_column}. This is descriptive analysis only; "
+        "no model is trained and no prediction is made."
+    )
+    st.dataframe(target_distribution, use_container_width=True, hide_index=True)
+    class_fig = px.bar(
+        target_distribution,
+        x="class",
+        y="count",
+        text="percent",
+        title="Records by loss-severity class",
+    )
+    class_fig.update_traces(texttemplate="%{text:.3f}%", textposition="outside", cliponaxis=False)
+    class_fig.update_layout(xaxis_title="Loss severity class", yaxis_title="Record count")
+    st.plotly_chart(class_fig, use_container_width=True)
+    st.warning(
+        "Check class imbalance before any modelling. Overall accuracy alone can hide poor "
+        "performance on rare severe/complete-loss classes. This chart does not indicate "
+        "predictive performance or operational risk."
+    )
+
 st.subheader("Preview")
 st.dataframe(df.head(100), use_container_width=True)
 
@@ -124,6 +166,8 @@ report = {
     "column_count": int(len(df.columns)),
     "duplicate_row_count": int(df.duplicated().sum()),
     "missing_cell_count": missing_total,
+    "target_column": str(target_column) if target_column is not None else None,
+    "target_class_distribution": target_distribution_records,
     "columns": summary.to_dict(orient="records"),
     "limitations": [
         "Exploratory data-quality report only.",
