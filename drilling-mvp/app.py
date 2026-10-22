@@ -300,6 +300,30 @@ if target_column is not None:
                     )
                     model.fit(X_train, y_train)
                     predictions = model.predict(X_test)
+
+                    # Hard consistency checks: every test row must have one true label and one prediction.
+                    train_class_counts = {str(k): int(v) for k, v in y_train.value_counts().items()}
+                    test_class_counts = {str(k): int(v) for k, v in y_test.value_counts().items()}
+                    predicted_class_counts = {
+                        str(k): int(v) for k, v in pd.Series(predictions).value_counts().items()
+                    }
+                    actual_train_total = sum(train_class_counts.values())
+                    actual_test_total = sum(test_class_counts.values())
+                    predicted_total = sum(predicted_class_counts.values())
+                    if (
+                        actual_train_total != len(y_train)
+                        or actual_test_total != len(y_test)
+                        or predicted_total != len(y_test)
+                        or len(predictions) != len(y_test)
+                    ):
+                        st.error(
+                            "Evaluation counts are inconsistent; no metrics were saved. "
+                            f"Training rows: {len(y_train):,} vs class total {actual_train_total:,}; "
+                            f"test rows: {len(y_test):,} vs class total {actual_test_total:,}; "
+                            f"predictions: {len(predictions):,} vs test rows {len(y_test):,}."
+                        )
+                        st.stop()
+
                     precision, recall, f1_values, support = precision_recall_fscore_support(
                         y_test,
                         predictions,
@@ -307,11 +331,6 @@ if target_column is not None:
                         zero_division=0,
                     )
                     cm = confusion_matrix(y_test, predictions, labels=class_names)
-                    train_class_counts = {str(k): int(v) for k, v in y_train.value_counts().items()}
-                    test_class_counts = {str(k): int(v) for k, v in y_test.value_counts().items()}
-                    predicted_class_counts = {
-                        str(k): int(v) for k, v in pd.Series(predictions).value_counts().items()
-                    }
                     per_class = [
                         {
                             "class": class_names[i],
@@ -391,23 +410,35 @@ if target_column is not None:
                     for c in baseline_results["class_names"]
                 ],
             })
-            st.caption("Class support audit: compare examples of each class available for training, testing, and prediction.")
             support_totals = {
                 "training_rows": int(support_audit["training_rows"].sum()),
                 "test_rows": int(support_audit["test_rows"].sum()),
                 "predicted_rows": int(support_audit["predicted_rows"].sum()),
             }
-            if (
-                support_totals["training_rows"] != baseline_results["training_rows"]
-                or support_totals["test_rows"] != baseline_results["test_rows"]
-                or support_totals["predicted_rows"] != baseline_results["test_rows"]
-            ):
-                st.error(
-                    "Support audit counts are inconsistent with the evaluated split. "
-                    "Please rerun the experiment before interpreting or exporting these metrics."
-                )
-                st.json(support_totals)
+            support_audit = pd.concat(
+                [
+                    support_audit,
+                    pd.DataFrame([{
+                        "class": "TOTAL",
+                        "training_rows": support_totals["training_rows"],
+                        "test_rows": support_totals["test_rows"],
+                        "predicted_rows": support_totals["predicted_rows"],
+                    }]),
+                ],
+                ignore_index=True,
+            )
+            st.caption("Class support audit: totals must match training rows, test rows, and number of predictions.")
             st.dataframe(support_audit, use_container_width=True, hide_index=True)
+            counts_ok = (
+                support_totals["training_rows"] == baseline_results["training_rows"]
+                and support_totals["test_rows"] == baseline_results["test_rows"]
+                and support_totals["predicted_rows"] == baseline_results["test_rows"]
+            )
+            if not counts_ok:
+                st.error(
+                    "These saved results fail the count-consistency check. Do not interpret the metrics; "
+                    "refresh the app and rerun the experiment."
+                )
             absent_test_classes = support_audit.loc[support_audit["test_rows"] == 0, "class"].tolist()
             unpredicted_classes = support_audit.loc[support_audit["predicted_rows"] == 0, "class"].tolist()
             if absent_test_classes:
