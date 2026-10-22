@@ -24,9 +24,10 @@ st.title("HalaLoya AI Drilling Assistant")
 st.caption("Early research prototype · CSV/Excel exploration and data-quality checks")
 
 st.warning(
-    "Research use only. This prototype does not predict lost circulation, "
-    "is not validated for drilling operations, and must not be used for safety-critical decisions. "
-    "This is a public hosted app: do not upload confidential or commercially sensitive company data."
+    "Research use only. This prototype offers an experimental offline loss-severity classifier, "
+    "but it is not a real-time early-warning system, is not validated for drilling operations, "
+    "and must not be used for safety-critical decisions. This is a public hosted app: do not upload "
+    "confidential or commercially sensitive company data."
 )
 
 with st.expander("Before uploading data", expanded=True):
@@ -107,8 +108,8 @@ if target_column is not None:
 
     st.subheader("Loss severity class distribution")
     st.caption(
-        f"Detected label column: {target_column}. This is descriptive analysis only; "
-        "no model is trained and no prediction is made."
+        f"Detected label column: {target_column}. This chart describes the labels in the uploaded data; "
+        "it is not model performance and does not show predicted outcomes."
     )
     st.dataframe(target_distribution, use_container_width=True, hide_index=True)
     class_fig = px.bar(
@@ -384,10 +385,10 @@ report = {
     ),
     "columns": summary.to_dict(orient="records"),
     "limitations": [
-        "Exploratory data-quality inspection and, if run, an experimental classification baseline only.",
-        "The experimental baseline is not a validated lost-circulation prediction system.",
-        "Random row-level split does not establish generalization to unseen wells.",
-        "Not validated for operational or safety-critical use.",
+        "Exploratory data-quality checks and an optional experimental offline classification baseline only.",
+        "The model is evaluated on a random row-level holdout; this does not establish generalization to unseen wells.",
+        "The experiment is not a real-time early-warning system and is not validated for operations.",
+        "Rare severe/complete-loss metrics may be unstable due to low test support.",
         "Dataset license and permission must be verified independently."
     ]
 }
