@@ -352,7 +352,13 @@ if target_column is not None:
                             "candidate": candidate_name,
                             "validation_accuracy": round(float(accuracy_score(validation_y, validation_predictions)), 4),
                             "validation_balanced_accuracy": round(float(balanced_accuracy_score(validation_y, validation_predictions)), 4),
-                            "validation_macro_f1": round(float(f1_score(validation_y, validation_predictions, average="macro", zero_division=0)), 4),
+                            "validation_macro_f1": round(float(f1_score(
+                                validation_y,
+                                validation_predictions,
+                                labels=class_names,
+                                average="macro",
+                                zero_division=0,
+                            )), 4),
                             "validation_per_class_metrics": [
                                 {
                                     "class": class_names[i],
@@ -457,7 +463,27 @@ if target_column is not None:
                         "majority_baseline_accuracy": round(float(accuracy_score(y_test, majority_pred)), 4),
                         "random_forest_accuracy": round(float(accuracy_score(y_test, predictions)), 4),
                         "balanced_accuracy": round(float(balanced_accuracy_score(y_test, predictions)), 4),
-                        "macro_f1": round(float(f1_score(y_test, predictions, average="macro", zero_division=0)), 4),
+                        "balanced_accuracy_scope": "Classes represented in y_test; classes with zero true test support cannot be evaluated.",
+                        "macro_f1": round(float(f1_score(
+                            y_test,
+                            predictions,
+                            labels=class_names,
+                            average="macro",
+                            zero_division=0,
+                        )), 4),
+                        "macro_f1_all_known_classes": round(float(f1_score(
+                            y_test,
+                            predictions,
+                            labels=class_names,
+                            average="macro",
+                            zero_division=0,
+                        )), 4),
+                        "macro_f1_test_present_classes": round(float(f1_score(
+                            y_test,
+                            predictions,
+                            average="macro",
+                            zero_division=0,
+                        )), 4),
                         "per_class_metrics": per_class,
                         "confusion_matrix": cm.tolist(),
                         "top_feature_importances": top_features,
@@ -494,8 +520,17 @@ if target_column is not None:
             m1, m2, m3, m4 = st.columns(4)
             m1.metric("Majority baseline accuracy", f"{baseline_results['majority_baseline_accuracy']:.1%}")
             m2.metric("Random forest accuracy", f"{baseline_results['random_forest_accuracy']:.1%}")
-            m3.metric("Balanced accuracy", f"{baseline_results['balanced_accuracy']:.1%}")
-            m4.metric("Macro F1", f"{baseline_results['macro_f1']:.3f}")
+            m3.metric("Balanced accuracy (classes present in test)", f"{baseline_results['balanced_accuracy']:.1%}")
+            m4.metric("Macro F1 (all known classes)", f"{baseline_results['macro_f1_all_known_classes']:.3f}")
+            st.metric(
+                "Macro F1 (classes present in test only)",
+                f"{baseline_results['macro_f1_test_present_classes']:.3f}",
+            )
+            st.caption(
+                "The all-known-classes Macro F1 includes all target classes, even classes with no true test examples "
+                "(for which this strict score assigns zero F1). The test-present Macro F1 averages only classes "
+                "represented in the test labels or predictions. Check test support before interpreting either score."
+            )
             support_audit = pd.DataFrame({
                 "class": baseline_results["class_names"],
                 "training_rows": [
