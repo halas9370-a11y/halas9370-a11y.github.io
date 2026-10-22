@@ -77,3 +77,9 @@ This is an exploratory selection policy, not exhaustive hyperparameter tuning. M
 
 This is a single-field public research dataset. It cannot demonstrate performance on a different operator, formation, rig, basin, or data-acquisition system. A model with good offline scores would still be an experimental classifier—not a validated early-warning or operational drilling tool. Qualified drilling professionals and independent validation would be required before any field use.
 
+## Candidate comparison update (2026-10-23)
+
+The app now compares three candidate estimators using only an internal stratified validation subset carved from the outer training split: (1) Random Forest with `balanced_subsample` class weighting and leaf size 2; (2) Random Forest with `balanced` class weighting and leaf size 1; and (3) Extra Trees with `balanced` class weighting and leaf size 1. It chooses by the highest internal-validation Macro F1, breaking ties with balanced accuracy, then refits that estimator on all outer training records and evaluates it on the held-out test partition.
+
+This reduces direct tuning on the held-out test set but does not eliminate all research limitations. The internal validation estimate for Complete Loss will be based on very few records, the depth-block experiment can still mix records from the same wells, and the selection rule does not replace domain review or well-held-out validation. Read validation Macro F1 as a model-selection aid, not a guarantee of reliability.
+
