@@ -334,6 +334,37 @@ if target_column is not None:
                 "of errors. This random split does not test generalization to unseen wells."
             )
 
+            # Put the evaluation download next to the model results for easy access.
+            model_evaluation_report = {
+                "project": "HalaLoya AI Drilling Assistant",
+                "report_generated_utc": datetime.now(timezone.utc).isoformat(),
+                "uploaded_filename": uploaded.name,
+                "source_worksheet": source_sheet,
+                "dataset_sha256": dataset_fingerprint,
+                "row_count": int(len(df)),
+                "column_count": int(len(df.columns)),
+                "target_column": str(target_column),
+                "target_class_distribution": target_distribution_records,
+                "exploratory_model_baseline": {
+                    k: v for k, v in baseline_results.items()
+                    if k != "dataset_fingerprint"
+                },
+                "limitations": [
+                    "Experimental classification baseline only; not an operational prediction tool.",
+                    "Random row-level split may place records from the same well in training and test sets.",
+                    "Metrics do not prove generalization to unseen wells, operators, formations, or fields.",
+                    "Rare severe/complete-loss class metrics may be unstable due to low support.",
+                    "Not validated for drilling operations or safety-critical decisions."
+                ]
+            }
+            st.download_button(
+                "Download model evaluation report (JSON)",
+                data=json.dumps(model_evaluation_report, ensure_ascii=False, indent=2).encode("utf-8"),
+                file_name="halaloya_model_evaluation_report.json",
+                mime="application/json",
+                key="download_model_evaluation_report",
+            )
+
 report = {
     "project": "HalaLoya AI Drilling Assistant",
     "report_generated_utc": datetime.now(timezone.utc).isoformat(),
@@ -353,8 +384,9 @@ report = {
     ),
     "columns": summary.to_dict(orient="records"),
     "limitations": [
-        "Exploratory data-quality report only.",
-        "No lost-circulation prediction or model training is performed.",
+        "Exploratory data-quality inspection and, if run, an experimental classification baseline only.",
+        "The experimental baseline is not a validated lost-circulation prediction system.",
+        "Random row-level split does not establish generalization to unseen wells.",
         "Not validated for operational or safety-critical use.",
         "Dataset license and permission must be verified independently."
     ]
