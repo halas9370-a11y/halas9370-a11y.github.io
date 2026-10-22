@@ -302,6 +302,11 @@ if target_column is not None:
                         zero_division=0,
                     )
                     cm = confusion_matrix(y_test, predictions, labels=class_names)
+                    train_class_counts = {str(k): int(v) for k, v in y_train.value_counts().items()}
+                    test_class_counts = {str(k): int(v) for k, v in y_test.value_counts().items()}
+                    predicted_class_counts = {
+                        str(k): int(v) for k, v in pd.Series(predictions).value_counts().items()
+                    }
                     per_class = [
                         {
                             "class": class_names[i],
@@ -334,6 +339,9 @@ if target_column is not None:
                         "feature_columns": [str(col) for col in feature_columns],
                         "class_names": class_names,
                         "class_counts": {str(k): int(v) for k, v in counts.items()},
+                        "train_class_counts": train_class_counts,
+                        "test_class_counts": test_class_counts,
+                        "predicted_class_counts": predicted_class_counts,
                         "test_rows": int(len(y_test)),
                         "majority_baseline_accuracy": round(float(accuracy_score(y_test, majority_pred)), 4),
                         "random_forest_accuracy": round(float(accuracy_score(y_test, predictions)), 4),
@@ -361,6 +369,37 @@ if target_column is not None:
             m2.metric("Random forest accuracy", f"{baseline_results['random_forest_accuracy']:.1%}")
             m3.metric("Balanced accuracy", f"{baseline_results['balanced_accuracy']:.1%}")
             m4.metric("Macro F1", f"{baseline_results['macro_f1']:.3f}")
+            support_audit = pd.DataFrame({
+                "class": baseline_results["class_names"],
+                "training_rows": [
+                    baseline_results.get("train_class_counts", {}).get(c, 0)
+                    for c in baseline_results["class_names"]
+                ],
+                "test_rows": [
+                    baseline_results.get("test_class_counts", {}).get(c, 0)
+                    for c in baseline_results["class_names"]
+                ],
+                "predicted_rows": [
+                    baseline_results.get("predicted_class_counts", {}).get(c, 0)
+                    for c in baseline_results["class_names"]
+                ],
+            })
+            st.caption("Class support audit: compare examples of each class available for training, testing, and prediction.")
+            st.dataframe(support_audit, use_container_width=True, hide_index=True)
+            absent_test_classes = support_audit.loc[support_audit["test_rows"] == 0, "class"].tolist()
+            unpredicted_classes = support_audit.loc[support_audit["predicted_rows"] == 0, "class"].tolist()
+            if absent_test_classes:
+                st.warning(
+                    "The test set contains no true examples of: "
+                    + ", ".join(absent_test_classes)
+                    + ". Recall for these classes cannot be evaluated on this split."
+                )
+            if unpredicted_classes:
+                st.error(
+                    "The model predicted zero examples for: "
+                    + ", ".join(unpredicted_classes)
+                    + ". Inspect these classes carefully; overall accuracy can hide this failure."
+                )
             st.dataframe(
                 pd.DataFrame(baseline_results["per_class_metrics"]),
                 use_container_width=True,
