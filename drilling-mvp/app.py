@@ -1,10 +1,22 @@
+import hashlib
 import io
 import json
 from datetime import datetime, timezone
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from sklearn.dummy import DummyClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import (
+    accuracy_score,
+    balanced_accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_recall_fscore_support,
+)
+from sklearn.model_selection import train_test_split
 
 st.set_page_config(page_title="HalaLoya AI Drilling Assistant", page_icon="🛢️", layout="wide")
 
@@ -32,6 +44,7 @@ if uploaded is None:
     st.stop()
 
 raw = uploaded.getvalue()
+dataset_fingerprint = hashlib.sha256(raw).hexdigest()
 source_sheet = None
 try:
     if uploaded.name.lower().endswith(".csv"):
@@ -117,7 +130,7 @@ if target_column is not None:
 st.subheader("Preview")
 st.dataframe(df.head(100), use_container_width=True)
 
-numeric_cols = df.select_dtypes(include="number").columns.tolist()
+numeric_cols = [col for col in df.select_dtypes(include="number").columns.tolist() if col != target_column]
 if numeric_cols:
     st.subheader("Exploratory chart")
     x_options = ["Row order"] + [str(col) for col in df.columns]
@@ -157,6 +170,170 @@ if numeric_cols:
     else:
         st.info("At least four non-missing numeric values are needed for this screening.")
 
+# Optional exploratory classifier. This is not an operational prediction tool.
+baseline_results = st.session_state.get("baseline_eval_results")
+if baseline_results and baseline_results.get("dataset_fingerprint") != dataset_fingerprint:
+    st.session_state.pop("baseline_eval_results", None)
+    baseline_results = None
+
+if target_column is not None:
+    st.subheader("Exploratory model baseline (research only)")
+    st.warning(
+        "This experiment uses a random row-level split. Records from the same well or "
+        "nearby depths may appear in both sets, so these metrics do not prove performance "
+        "on unseen wells or other fields. Do not use predictions for operational decisions."
+    )
+    feature_columns = [
+        col for col in df.select_dtypes(include="number").columns.tolist()
+        if col != target_column
+    ]
+    st.caption(
+        f"Target: {target_column}. Numeric input features available: {len(feature_columns)}. "
+        "The target column is excluded from the model inputs."
+    )
+    if len(feature_columns) < 2:
+        st.error("At least two numeric input features are required for this experimental baseline.")
+    else:
+        if st.button("Run exploratory baseline test", key="run_baseline_model"):
+            try:
+                usable = df.loc[df[target_column].notna(), feature_columns + [target_column]].copy()
+                for col in feature_columns:
+                    usable[col] = pd.to_numeric(usable[col], errors="coerce")
+                usable[feature_columns] = usable[feature_columns].replace([np.inf, -np.inf], np.nan)
+                before_drop = len(usable)
+                usable = usable.dropna(subset=feature_columns + [target_column])
+                dropped_rows = before_drop - len(usable)
+                X = usable[feature_columns]
+                y = usable[target_column].astype(str)
+                counts = y.value_counts()
+                if len(usable) < 50 or y.nunique() < 2:
+                    st.error("There are not enough labeled records/classes for this experiment.")
+                elif (counts < 2).any():
+                    st.error(
+                        "At least one target class has fewer than two usable records; "
+                        "a stratified train/test split cannot be performed reliably."
+                    )
+                else:
+                    class_names = sorted(y.unique().tolist())
+                    X_train, X_test, y_train, y_test = train_test_split(
+                        X,
+                        y,
+                        test_size=0.30,
+                        random_state=42,
+                        stratify=y,
+                    )
+                    majority = DummyClassifier(strategy="most_frequent")
+                    majority.fit(X_train, y_train)
+                    majority_pred = majority.predict(X_test)
+
+                    model = RandomForestClassifier(
+                        n_estimators=100,
+                        min_samples_leaf=2,
+                        class_weight="balanced_subsample",
+                        random_state=42,
+                        n_jobs=-1,
+                    )
+                    model.fit(X_train, y_train)
+                    predictions = model.predict(X_test)
+                    precision, recall, f1_values, support = precision_recall_fscore_support(
+                        y_test,
+                        predictions,
+                        labels=class_names,
+                        zero_division=0,
+                    )
+                    cm = confusion_matrix(y_test, predictions, labels=class_names)
+                    per_class = [
+                        {
+                            "class": class_names[i],
+                            "precision": round(float(precision[i]), 4),
+                            "recall": round(float(recall[i]), 4),
+                            "f1": round(float(f1_values[i]), 4),
+                            "test_support": int(support[i]),
+                        }
+                        for i in range(len(class_names))
+                    ]
+                    top_features = sorted(
+                        [
+                            {"feature": str(feature_columns[i]), "importance": round(float(model.feature_importances_[i]), 6)}
+                            for i in range(len(feature_columns))
+                        ],
+                        key=lambda item: item["importance"],
+                        reverse=True,
+                    )[:12]
+                    st.session_state["baseline_eval_results"] = {
+                        "dataset_fingerprint": dataset_fingerprint,
+                        "model": "RandomForestClassifier",
+                        "baseline": "DummyClassifier(strategy='most_frequent')",
+                        "random_state": 42,
+                        "test_size": 0.30,
+                        "rows_used": int(len(usable)),
+                        "rows_dropped_for_missing_or_non_numeric_values": int(dropped_rows),
+                        "feature_columns": [str(col) for col in feature_columns],
+                        "class_names": class_names,
+                        "class_counts": {str(k): int(v) for k, v in counts.items()},
+                        "test_rows": int(len(y_test)),
+                        "majority_baseline_accuracy": round(float(accuracy_score(y_test, majority_pred)), 4),
+                        "random_forest_accuracy": round(float(accuracy_score(y_test, predictions)), 4),
+                        "balanced_accuracy": round(float(balanced_accuracy_score(y_test, predictions)), 4),
+                        "macro_f1": round(float(f1_score(y_test, predictions, average="macro", zero_division=0)), 4),
+                        "per_class_metrics": per_class,
+                        "confusion_matrix": cm.tolist(),
+                        "top_feature_importances": top_features,
+                        "validation_limitation": (
+                            "Random row-level split; no well-level holdout because the visible "
+                            "columns do not identify wells. Metrics are exploratory only."
+                        ),
+                    }
+                    baseline_results = st.session_state["baseline_eval_results"]
+            except Exception as exc:
+                st.error(f"The experimental baseline could not run. Details: {exc}")
+
+        baseline_results = st.session_state.get("baseline_eval_results")
+        if baseline_results and baseline_results.get("dataset_fingerprint") == dataset_fingerprint:
+            st.caption(
+                f"Evaluation used {baseline_results['rows_used']:,} records; "
+                f"{baseline_results['test_rows']:,} were in the holdout test set. "
+                f"Rows excluded for missing/non-numeric values: "
+                f"{baseline_results['rows_dropped_for_missing_or_non_numeric_values']:,}."
+            )
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Majority baseline accuracy", f"{baseline_results['majority_baseline_accuracy']:.1%}")
+            m2.metric("Random forest accuracy", f"{baseline_results['random_forest_accuracy']:.1%}")
+            m3.metric("Balanced accuracy", f"{baseline_results['balanced_accuracy']:.1%}")
+            m4.metric("Macro F1", f"{baseline_results['macro_f1']:.3f}")
+            st.dataframe(
+                pd.DataFrame(baseline_results["per_class_metrics"]),
+                use_container_width=True,
+                hide_index=True,
+            )
+            class_names = baseline_results["class_names"]
+            cm_df = pd.DataFrame(
+                baseline_results["confusion_matrix"],
+                index=[f"Actual: {name}" for name in class_names],
+                columns=[f"Predicted: {name}" for name in class_names],
+            )
+            st.caption("Confusion matrix: rows are actual classes; columns are predicted classes.")
+            st.dataframe(cm_df, use_container_width=True)
+            importance_df = pd.DataFrame(baseline_results["top_feature_importances"])
+            if not importance_df.empty:
+                importance_fig = px.bar(
+                    importance_df.sort_values("importance"),
+                    x="importance",
+                    y="feature",
+                    orientation="h",
+                    title="Top Random Forest feature importances",
+                )
+                st.plotly_chart(importance_fig, use_container_width=True)
+                st.caption(
+                    "Feature importance is a model-specific association measure, not proof "
+                    "of causation or engineering relevance."
+                )
+            st.warning(
+                "Interpret each class metric using its test support. The complete-loss class "
+                "has very few examples, so its score can change sharply with a small number "
+                "of errors. This random split does not test generalization to unseen wells."
+            )
+
 report = {
     "project": "HalaLoya AI Drilling Assistant",
     "report_generated_utc": datetime.now(timezone.utc).isoformat(),
@@ -168,6 +345,12 @@ report = {
     "missing_cell_count": missing_total,
     "target_column": str(target_column) if target_column is not None else None,
     "target_class_distribution": target_distribution_records,
+    "exploratory_model_baseline": (
+        {k: v for k, v in st.session_state["baseline_eval_results"].items() if k != "dataset_fingerprint"}
+        if st.session_state.get("baseline_eval_results")
+        and st.session_state["baseline_eval_results"].get("dataset_fingerprint") == dataset_fingerprint
+        else None
+    ),
     "columns": summary.to_dict(orient="records"),
     "limitations": [
         "Exploratory data-quality report only.",
