@@ -9,32 +9,45 @@ import streamlit as st
 st.set_page_config(page_title="HalaLoya AI Drilling Assistant", page_icon="🛢️", layout="wide")
 
 st.title("HalaLoya AI Drilling Assistant")
-st.caption("Early research prototype · CSV exploration and data-quality checks")
+st.caption("Early research prototype · CSV/Excel exploration and data-quality checks")
 
 st.warning(
     "Research use only. This prototype does not predict lost circulation, "
-    "is not validated for drilling operations, and must not be used for safety-critical decisions."
+    "is not validated for drilling operations, and must not be used for safety-critical decisions. "
+    "This is a public hosted app: do not upload confidential or commercially sensitive company data."
 )
 
 with st.expander("Before uploading data", expanded=True):
     st.markdown(
         "- Upload only data you are authorized to use.\n"
-        "- Remove personal, confidential, or commercially sensitive information.\n"
+        "- Do not upload confidential, commercially sensitive, personal, or regulated information to this public prototype.\n"
         "- Verify the dataset license and attribution requirements before research publication.\n"
         "- Results are exploratory statistics, not engineering conclusions."
     )
 
-uploaded = st.file_uploader("Upload a drilling dataset (CSV)", type=["csv"])
+uploaded = st.file_uploader("Upload a drilling dataset (CSV or Excel XLSX)", type=["csv", "xlsx"])
 
 if uploaded is None:
-    st.info("Upload a CSV file to inspect its structure and explore numeric variables.")
+    st.info("Upload a CSV or XLSX file to inspect its structure and explore numeric variables.")
     st.stop()
 
+raw = uploaded.getvalue()
+source_sheet = None
 try:
-    raw = uploaded.getvalue()
-    df = pd.read_csv(io.BytesIO(raw), low_memory=False)
+    if uploaded.name.lower().endswith(".csv"):
+        df = pd.read_csv(io.BytesIO(raw), low_memory=False)
+    elif uploaded.name.lower().endswith(".xlsx"):
+        workbook = pd.ExcelFile(io.BytesIO(raw), engine="openpyxl")
+        if not workbook.sheet_names:
+            st.error("No worksheets were found in this Excel workbook.")
+            st.stop()
+        source_sheet = st.selectbox("Choose an Excel worksheet", workbook.sheet_names)
+        df = pd.read_excel(workbook, sheet_name=source_sheet)
+    else:
+        st.error("Unsupported file type. Upload a CSV or XLSX file.")
+        st.stop()
 except Exception as exc:
-    st.error(f"Could not read this CSV. Check its encoding and delimiter. Details: {exc}")
+    st.error(f"Could not read this file. Check the file format, encoding, and worksheet structure. Details: {exc}")
     st.stop()
 
 if df.empty:
@@ -106,6 +119,7 @@ report = {
     "project": "HalaLoya AI Drilling Assistant",
     "report_generated_utc": datetime.now(timezone.utc).isoformat(),
     "uploaded_filename": uploaded.name,
+    "source_worksheet": source_sheet,
     "row_count": int(len(df)),
     "column_count": int(len(df.columns)),
     "duplicate_row_count": int(df.duplicated().sum()),
