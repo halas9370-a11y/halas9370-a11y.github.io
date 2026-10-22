@@ -83,3 +83,11 @@ The app now compares three candidate estimators using only an internal stratifie
 
 This reduces direct tuning on the held-out test set but does not eliminate all research limitations. The internal validation estimate for Complete Loss will be based on very few records, the depth-block experiment can still mix records from the same wells, and the selection rule does not replace domain review or well-held-out validation. Read validation Macro F1 as a model-selection aid, not a guarantee of reliability.
 
+## Macro F1 scope clarification (2026-10-23)
+
+The app now reports two explicit Macro F1 values:
+- `macro_f1_all_known_classes`: macro F1 with the full set of known target classes passed explicitly. This strict aggregate assigns F1=0 to classes with no true test support and must be interpreted together with support counts.
+- `macro_f1_test_present_classes`: macro F1 using only labels represented in the test labels or predictions.
+
+Candidate selection on the internal validation split also passes the complete known class list explicitly to Macro F1. Balanced accuracy is still computed on classes represented in the true test labels; a class absent from the test set cannot have its recall measured. Always publish per-class support and recall alongside aggregate scores. If Complete Loss has zero test support, the experiment cannot validate Complete Loss detection, regardless of aggregate metrics.
+
