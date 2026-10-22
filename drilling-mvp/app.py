@@ -172,10 +172,15 @@ if numeric_cols:
         st.info("At least four non-missing numeric values are needed for this screening.")
 
 # Optional exploratory classifier. This is not an operational prediction tool.
+EVALUATION_SCHEMA_VERSION = 2
 baseline_results = st.session_state.get("baseline_eval_results")
 if baseline_results and (
     baseline_results.get("dataset_fingerprint") != dataset_fingerprint
     or baseline_results.get("validation_method") != st.session_state.get("baseline_split_method")
+    or baseline_results.get("evaluation_schema_version") != EVALUATION_SCHEMA_VERSION
+    or "train_class_counts" not in baseline_results
+    or "test_class_counts" not in baseline_results
+    or "predicted_class_counts" not in baseline_results
 ):
     st.session_state.pop("baseline_eval_results", None)
     baseline_results = None
@@ -327,6 +332,7 @@ if target_column is not None:
                     )[:12]
                     st.session_state["baseline_eval_results"] = {
                         "dataset_fingerprint": dataset_fingerprint,
+                        "evaluation_schema_version": EVALUATION_SCHEMA_VERSION,
                         "model": "RandomForestClassifier",
                         "baseline": "DummyClassifier(strategy='most_frequent')",
                         "random_state": 42,
@@ -342,6 +348,7 @@ if target_column is not None:
                         "train_class_counts": train_class_counts,
                         "test_class_counts": test_class_counts,
                         "predicted_class_counts": predicted_class_counts,
+                        "training_rows": int(len(y_train)),
                         "test_rows": int(len(y_test)),
                         "majority_baseline_accuracy": round(float(accuracy_score(y_test, majority_pred)), 4),
                         "random_forest_accuracy": round(float(accuracy_score(y_test, predictions)), 4),
@@ -372,19 +379,34 @@ if target_column is not None:
             support_audit = pd.DataFrame({
                 "class": baseline_results["class_names"],
                 "training_rows": [
-                    baseline_results.get("train_class_counts", {}).get(c, 0)
+                    baseline_results["train_class_counts"].get(c, 0)
                     for c in baseline_results["class_names"]
                 ],
                 "test_rows": [
-                    baseline_results.get("test_class_counts", {}).get(c, 0)
+                    baseline_results["test_class_counts"].get(c, 0)
                     for c in baseline_results["class_names"]
                 ],
                 "predicted_rows": [
-                    baseline_results.get("predicted_class_counts", {}).get(c, 0)
+                    baseline_results["predicted_class_counts"].get(c, 0)
                     for c in baseline_results["class_names"]
                 ],
             })
             st.caption("Class support audit: compare examples of each class available for training, testing, and prediction.")
+            support_totals = {
+                "training_rows": int(support_audit["training_rows"].sum()),
+                "test_rows": int(support_audit["test_rows"].sum()),
+                "predicted_rows": int(support_audit["predicted_rows"].sum()),
+            }
+            if (
+                support_totals["training_rows"] != baseline_results["training_rows"]
+                or support_totals["test_rows"] != baseline_results["test_rows"]
+                or support_totals["predicted_rows"] != baseline_results["test_rows"]
+            ):
+                st.error(
+                    "Support audit counts are inconsistent with the evaluated split. "
+                    "Please rerun the experiment before interpreting or exporting these metrics."
+                )
+                st.json(support_totals)
             st.dataframe(support_audit, use_container_width=True, hide_index=True)
             absent_test_classes = support_audit.loc[support_audit["test_rows"] == 0, "class"].tolist()
             unpredicted_classes = support_audit.loc[support_audit["predicted_rows"] == 0, "class"].tolist()
