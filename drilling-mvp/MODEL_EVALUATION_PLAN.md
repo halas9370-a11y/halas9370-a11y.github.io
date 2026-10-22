@@ -61,6 +61,18 @@ The hosted prototype also provides an optional *depth-block stress test*. It ide
 
 This is a distribution-shift sensitivity check, **not** a well-held-out validation. The same physical well may contribute records to both partitions because the visible workbook has no clear well identifier. It can show whether scores degrade when tested at higher measured depths, but it cannot establish transfer to unseen wells. If a reliable well ID / row-to-well mapping is found, the preferred validation remains grouping the split by well.
 
+## Training-only candidate comparison
+
+The app now compares three candidate estimators using only an internal stratified validation subset from the outer training partition:
+
+- Random Forest with `class_weight="balanced_subsample"` and `min_samples_leaf=2`.
+- Random Forest with `class_weight="balanced"` and `min_samples_leaf=1`.
+- Extra Trees with `class_weight="balanced"` and `min_samples_leaf=1`.
+
+Candidates are ranked by validation Macro F1, with balanced accuracy as the tie-breaker. The selected candidate is then refit on the full outer training partition and evaluated on the existing held-out test partition. The held-out test labels are not used for candidate selection. The report retains each candidate's validation accuracy, balanced accuracy, Macro F1 and per-class metrics.
+
+This is an exploratory selection policy, not exhaustive hyperparameter tuning. Macro F1 gives every class equal weight but may still be unstable when rare classes have very few validation cases. Severe/complete-loss recall and support must be examined separately. Candidate selection must not be repeated based on repeated inspection of held-out test metrics; if this happens, the test data become part of the tuning process and a new independent evaluation set is needed.
+
 ## Claims boundary
 
 This is a single-field public research dataset. It cannot demonstrate performance on a different operator, formation, rig, basin, or data-acquisition system. A model with good offline scores would still be an experimental classifier—not a validated early-warning or operational drilling tool. Qualified drilling professionals and independent validation would be required before any field use.
