@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from sklearn.dummy import DummyClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
 from sklearn.metrics import (
     accuracy_score,
     balanced_accuracy_score,
@@ -172,7 +172,7 @@ if numeric_cols:
         st.info("At least four non-missing numeric values are needed for this screening.")
 
 # Optional exploratory classifier. This is not an operational prediction tool.
-EVALUATION_SCHEMA_VERSION = 3
+EVALUATION_SCHEMA_VERSION = 4
 baseline_results = st.session_state.get("baseline_eval_results")
 if baseline_results and (
     baseline_results.get("dataset_fingerprint") != dataset_fingerprint
@@ -186,7 +186,7 @@ if baseline_results and (
     baseline_results = None
 
 if target_column is not None:
-    st.subheader("Exploratory model baseline (research only)")
+    st.subheader("Exploratory model comparison (research only)")
     split_method = st.radio(
         "Choose an evaluation split",
         [
@@ -203,10 +203,10 @@ if target_column is not None:
         )
     else:
         st.warning(
-            "Depth-block stress test: train on the lower measured-depth range and test on "
-            "the higher range. This can reveal sensitivity to depth shift, but the same wells "
-            "may still appear in both sets; it is not a well-held-out test. Do not use "
-            "predictions for operational decisions."
+            "Depth-block stress test: compare candidates using an internal validation subset "
+            "of lower-depth training data, then evaluate the selected candidate on the higher-depth "
+            "block. The same wells may still appear in both partitions; this is not a well-held-out "
+            "test. Do not use predictions for operational decisions."
         )
     feature_columns = [
         col for col in df.select_dtypes(include="number").columns.tolist()
@@ -219,7 +219,7 @@ if target_column is not None:
     if len(feature_columns) < 2:
         st.error("At least two numeric input features are required for this experimental baseline.")
     else:
-        if st.button("Run exploratory baseline test", key="run_baseline_model"):
+        if st.button("Compare models and evaluate selected candidate", key="run_baseline_model"):
             try:
                 usable = df.loc[df[target_column].notna(), feature_columns + [target_column]].copy()
                 for col in feature_columns:
@@ -287,18 +287,100 @@ if target_column is not None:
                             "70th-percentile unique-depth cutoff and test on depths at/above it. "
                             "It is not a well-held-out test; wells may still overlap across partitions."
                         )
+                    # Select among candidates using only a validation subset of the outer training rows.
+                    # The outer test set is kept separate from model selection.
+                    train_counts_for_validation = y_train.value_counts()
+                    if (train_counts_for_validation < 2).any():
+                        st.error(
+                            "Model comparison needs at least two training examples per class "
+                            "to form the internal stratified validation split."
+                        )
+                        st.stop()
+
+                    inner_train_X, validation_X, inner_train_y, validation_y = train_test_split(
+                        X_train,
+                        y_train,
+                        test_size=0.20,
+                        random_state=24,
+                        stratify=y_train,
+                    )
+
+                    candidate_specs = [
+                        (
+                            "Random Forest · balanced_subsample · leaf=2",
+                            RandomForestClassifier(
+                                n_estimators=100,
+                                min_samples_leaf=2,
+                                class_weight="balanced_subsample",
+                                random_state=42,
+                                n_jobs=-1,
+                            ),
+                        ),
+                        (
+                            "Random Forest · balanced · leaf=1",
+                            RandomForestClassifier(
+                                n_estimators=150,
+                                min_samples_leaf=1,
+                                class_weight="balanced",
+                                random_state=43,
+                                n_jobs=-1,
+                            ),
+                        ),
+                        (
+                            "Extra Trees · balanced · leaf=1",
+                            ExtraTreesClassifier(
+                                n_estimators=150,
+                                min_samples_leaf=1,
+                                class_weight="balanced",
+                                random_state=44,
+                                n_jobs=-1,
+                            ),
+                        ),
+                    ]
+
+                    candidate_validation_results = []
+                    for candidate_name, candidate_model in candidate_specs:
+                        candidate_model.fit(inner_train_X, inner_train_y)
+                        validation_predictions = candidate_model.predict(validation_X)
+                        val_precision, val_recall, val_f1, val_support = precision_recall_fscore_support(
+                            validation_y,
+                            validation_predictions,
+                            labels=class_names,
+                            zero_division=0,
+                        )
+                        candidate_validation_results.append({
+                            "candidate": candidate_name,
+                            "validation_accuracy": round(float(accuracy_score(validation_y, validation_predictions)), 4),
+                            "validation_balanced_accuracy": round(float(balanced_accuracy_score(validation_y, validation_predictions)), 4),
+                            "validation_macro_f1": round(float(f1_score(validation_y, validation_predictions, average="macro", zero_division=0)), 4),
+                            "validation_per_class_metrics": [
+                                {
+                                    "class": class_names[i],
+                                    "precision": round(float(val_precision[i]), 4),
+                                    "recall": round(float(val_recall[i]), 4),
+                                    "f1": round(float(val_f1[i]), 4),
+                                    "validation_support": int(val_support[i]),
+                                }
+                                for i in range(len(class_names))
+                            ],
+                        })
+
+                    best_candidate_index = max(
+                        range(len(candidate_specs)),
+                        key=lambda i: (
+                            candidate_validation_results[i]["validation_macro_f1"],
+                            candidate_validation_results[i]["validation_balanced_accuracy"],
+                        ),
+                    )
+                    selected_model_name, model = candidate_specs[best_candidate_index]
+                    selected_validation_metrics = candidate_validation_results[best_candidate_index]
+
+                    # Refit the selected candidate on all outer training rows, then evaluate
+                    # once on the held-out test data.
+                    model.fit(X_train, y_train)
                     majority = DummyClassifier(strategy="most_frequent")
                     majority.fit(X_train, y_train)
                     majority_pred = majority.predict(X_test)
-
-                    model = RandomForestClassifier(
-                        n_estimators=100,
-                        min_samples_leaf=2,
-                        class_weight="balanced_subsample",
-                        random_state=42,
-                        n_jobs=-1,
-                    )
-                    model.fit(X_train, y_train)
                     predictions = model.predict(X_test)
 
                     # Hard consistency checks: every test row must have one true label and one prediction.
@@ -352,7 +434,10 @@ if target_column is not None:
                     st.session_state["baseline_eval_results"] = {
                         "dataset_fingerprint": dataset_fingerprint,
                         "evaluation_schema_version": EVALUATION_SCHEMA_VERSION,
-                        "model": "RandomForestClassifier",
+                        "model": selected_model_name,
+                        "selected_model_validation_metrics": selected_validation_metrics,
+                        "candidate_validation_results": candidate_validation_results,
+                        "model_selection_rule": "Highest internal validation Macro F1; tie-breaker is balanced accuracy.",
                         "baseline": "DummyClassifier(strategy='most_frequent')",
                         "random_state": 42,
                         "validation_method": split_method,
@@ -390,6 +475,22 @@ if target_column is not None:
                 f"Rows excluded for missing/non-numeric values: "
                 f"{baseline_results['rows_dropped_for_missing_or_non_numeric_values']:,}."
             )
+            st.caption(
+                f"Selected candidate: {baseline_results['model']}. "
+                "Candidates were compared on an internal validation subset of the training data; "
+                "the selected model was refit on all training rows before the held-out test."
+            )
+            candidate_table = pd.DataFrame([
+                {
+                    "candidate": item["candidate"],
+                    "validation_accuracy": item["validation_accuracy"],
+                    "validation_balanced_accuracy": item["validation_balanced_accuracy"],
+                    "validation_macro_f1": item["validation_macro_f1"],
+                }
+                for item in baseline_results["candidate_validation_results"]
+            ])
+            st.subheader("Candidate comparison on training-only validation data")
+            st.dataframe(candidate_table, use_container_width=True, hide_index=True)
             m1, m2, m3, m4 = st.columns(4)
             m1.metric("Majority baseline accuracy", f"{baseline_results['majority_baseline_accuracy']:.1%}")
             m2.metric("Random forest accuracy", f"{baseline_results['random_forest_accuracy']:.1%}")
