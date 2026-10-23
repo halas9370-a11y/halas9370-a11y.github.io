@@ -83,6 +83,17 @@ def order_diagnostics(depth: pd.Series, drop_m: float) -> tuple[dict, np.ndarray
     diff = np.diff(d)
     seg = np.concatenate([[0], np.cumsum(diff < -drop_m)])
     sizes = pd.Series(seg).value_counts()
+    segment_summaries = []
+    for group_id in np.unique(seg):
+        idx = np.flatnonzero(seg == group_id)
+        segment_summaries.append({
+            "proxy_segment": int(group_id),
+            "first_row_1based": int(idx[0] + 1),
+            "last_row_1based": int(idx[-1] + 1),
+            "rows": int(len(idx)),
+            "start_depth_m": float(d[idx[0]]),
+            "end_depth_m": float(d[idx[-1]]),
+        })
     diag = {
         "rows_with_valid_depth": int(len(d)),
         "share_non_decreasing_steps": float((diff >= 0).mean()),
@@ -92,6 +103,8 @@ def order_diagnostics(depth: pd.Series, drop_m: float) -> tuple[dict, np.ndarray
         "segment_size_min": int(sizes.min()),
         "segment_size_median": float(sizes.median()),
         "segment_size_max": int(sizes.max()),
+        "segments_starting_deeper_than_500m": int(sum(item["start_depth_m"] > 500 for item in segment_summaries)),
+        "segment_summaries": segment_summaries,
     }
     return diag, seg.astype(int)
 
@@ -254,6 +267,10 @@ def main() -> None:
     sizes = group_series.value_counts()
     print(f"groups_used={group_series.nunique()} [{grouping_method}]")
     print(f"groups containing critical rows={pos_groups}; independent positive-group count is more informative than row count alone.")
+    deep_starts = diag.get("segments_starting_deeper_than_500m", 0)
+    if deep_starts:
+        print(f"CAUTION: {deep_starts}/{diag['segment_count_from_depth_resets']} inferred segments start deeper than 500 m. This weakens the assumption that each segment equals one complete well; verify a row-to-well mapping.")
+    print(f"Majority baseline: accuracy={1-y.mean():.3%}, critical recall=0.000, AP/prevalence baseline={y.mean():.4f}; high accuracy alone is not useful for rare-event detection.")
 
     results = []
     feature_sets = [("model_with_flow_columns", False), ("model_without_flow_columns", True)]
