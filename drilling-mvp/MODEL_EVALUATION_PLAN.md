@@ -124,3 +124,16 @@ The Mendeley Data listing states a CC BY-NC 3.0 license. Treat this as **non-com
 3. Keep candidate tuning restricted to the training/validation data. Once model selection is complete, evaluate exactly once on a properly defined final test.
 4. In parallel, inspect the Marun workbook only as a separately licensed research candidate. Do not claim direct cross-field validation until targets and features are made genuinely comparable.
 
+## Additional candidate estimators (2026-10-23)
+
+The optional training-only model comparison now includes five estimators:
+1. Random Forest with `balanced_subsample` weights and `min_samples_leaf=2`.
+2. Random Forest with `balanced` weights and `min_samples_leaf=1`.
+3. Extra Trees with `balanced` weights and `min_samples_leaf=1`.
+4. Decision Tree with `class_weight="balanced"` and `min_samples_leaf=2`.
+5. AdaBoost with a shallow decision-tree base estimator and sample weights computed with balanced class weights.
+
+The inclusion of Decision Tree and AdaBoost is motivated by the 2022 published analysis of the same Azadegan dataset, which reports strong class-specific results from tree-based methods and notes that Decision Tree performs well for complete loss while AdaBoost performs well for severe loss. This is motivation to test candidates, not a guarantee they will work under the current depth-block split. Source: https://doi.org/10.1007/s13202-021-01411-y
+
+The candidates are selected by internal-validation Macro F1 over all known classes, with balanced accuracy as a tie-breaker. The chosen estimator is refit on the outer training partition before evaluation on the held-out partition. This remains exploratory: depth-block holdout is not well-held-out validation, and the rare complete-loss class is absent in the high-depth block. The selected-model test accuracy is now labelled generically rather than as Random Forest accuracy.
+
