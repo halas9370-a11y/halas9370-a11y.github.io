@@ -13,6 +13,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils.class_weight import compute_sample_weight
 from sklearn.metrics import (
     accuracy_score,
+    average_precision_score,
     balanced_accuracy_score,
     confusion_matrix,
     f1_score,
@@ -234,7 +235,7 @@ if numeric_cols:
         st.info("At least four non-missing numeric values are needed for this screening.")
 
 # Optional exploratory classifier. This is not an operational prediction tool.
-EVALUATION_SCHEMA_VERSION = 9
+EVALUATION_SCHEMA_VERSION = 10
 baseline_results = st.session_state.get("baseline_eval_results")
 if baseline_results and (
     baseline_results.get("dataset_fingerprint") != dataset_fingerprint
@@ -621,6 +622,25 @@ if target_column is not None:
                         critical_test_pred = (
                             critical_test_prob >= selected_critical_threshold
                         ).astype(int)
+                        positive_test_scores = critical_test_prob[critical_test_y.to_numpy() == 1]
+                        negative_test_scores = critical_test_prob[critical_test_y.to_numpy() == 0]
+                        test_average_precision = (
+                            float(average_precision_score(critical_test_y, critical_test_prob))
+                            if critical_test_y.nunique() > 1 and int(critical_test_y.sum()) > 0
+                            else None
+                        )
+                        max_positive_score = (
+                            float(np.max(positive_test_scores)) if len(positive_test_scores) else None
+                        )
+                        median_positive_score = (
+                            float(np.median(positive_test_scores)) if len(positive_test_scores) else None
+                        )
+                        max_negative_score = (
+                            float(np.max(negative_test_scores)) if len(negative_test_scores) else None
+                        )
+                        median_negative_score = (
+                            float(np.median(negative_test_scores)) if len(negative_test_scores) else None
+                        )
                         critical_cm = confusion_matrix(
                             critical_test_y,
                             critical_test_pred,
@@ -651,6 +671,11 @@ if target_column is not None:
                             "test_recall_critical": round(float(critical_recall[0]), 4),
                             "test_f1_critical": round(float(critical_f1[0]), 4),
                             "test_f2_critical": round(float(fbeta_score(critical_test_y, critical_test_pred, beta=2, zero_division=0)), 4),
+                            "test_average_precision": round(test_average_precision, 4) if test_average_precision is not None else None,
+                            "max_test_critical_probability": round(max_positive_score, 6) if max_positive_score is not None else None,
+                            "median_test_critical_probability": round(median_positive_score, 6) if median_positive_score is not None else None,
+                            "max_test_noncritical_probability": round(max_negative_score, 6) if max_negative_score is not None else None,
+                            "median_test_noncritical_probability": round(median_negative_score, 6) if median_negative_score is not None else None,
                             "test_specificity": round(float(tn / (tn + fp)), 4) if (tn + fp) else None,
                             "true_negatives": tn,
                             "false_positives": fp,
@@ -819,6 +844,33 @@ if target_column is not None:
                 c2.metric("Critical-loss recall", f"{critical_screen['test_recall_critical']:.1%}")
                 c3.metric("Critical-loss F1", f"{critical_screen['test_f1_critical']:.3f}")
                 c4.metric("Critical-loss F2", f"{critical_screen['test_f2_critical']:.3f}")
+                d1, d2 = st.columns(2)
+                d1.metric(
+                    "Test average precision (critical class)",
+                    f"{critical_screen['test_average_precision']:.3f}"
+                    if critical_screen.get("test_average_precision") is not None else "N/A",
+                )
+                d2.metric(
+                    "Selected threshold (chosen on validation only)",
+                    f"{critical_screen['threshold_selected_on_internal_validation']:.3f}",
+                )
+                score_diag = pd.DataFrame([
+                    {
+                        "score summary": "Actual critical cases in test",
+                        "max predicted critical probability": critical_screen.get("max_test_critical_probability"),
+                        "median predicted critical probability": critical_screen.get("median_test_critical_probability"),
+                    },
+                    {
+                        "score summary": "Actual non-critical cases in test",
+                        "max predicted critical probability": critical_screen.get("max_test_noncritical_probability"),
+                        "median predicted critical probability": critical_screen.get("median_test_noncritical_probability"),
+                    },
+                ])
+                st.caption(
+                    "Score diagnostics help distinguish a threshold issue from poor ranking on the deeper test block. "
+                    "The test scores are diagnostic only; do not retune the threshold using them."
+                )
+                st.dataframe(score_diag, use_container_width=True, hide_index=True)
                 c5, c6, c7, c8 = st.columns(4)
                 c5.metric("True positives", f"{critical_screen['true_positives']:,}")
                 c6.metric("Missed critical cases", f"{critical_screen['false_negatives']:,}")
