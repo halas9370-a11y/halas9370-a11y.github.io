@@ -145,3 +145,9 @@ Three class-weighted candidates (Random Forest, Extra Trees, and Decision Tree) 
 
 This is a screening experiment on recorded labels, not a future-event early-warning model. The depth-block test has no Complete Loss records, so it cannot evaluate Complete Loss independently. A higher recall threshold may substantially increase false alarms. Any metric changes must be interpreted together with missed critical cases and false alarms, and this experiment does not establish transfer to unseen wells or operational safety.
 
+## Diagnostic metrics for zero critical-loss detections (2026-10-23)
+
+The binary critical-loss screen now reports the threshold selected using internal validation, average precision on the held-out depth block, and the maximum/median predicted critical-class probability for actual critical and non-critical test records. These metrics help determine whether the chosen threshold is above all test scores or whether the model poorly ranks deeper severe-loss cases.
+
+The held-out test probabilities are diagnostic only. Do not use test results to choose a replacement threshold and then report those same results as independent evaluation. If the test scores are low for actual severe-loss records, prioritize the data representation and validation design (well identity, neighboring-depth/context variables, chronology, formation/operational metadata) rather than threshold changes alone.
+
