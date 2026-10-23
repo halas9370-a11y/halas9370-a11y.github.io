@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This document records a cautious plan for a research-only first supervised-learning experiment using the publicly published Azadegan oilfield lost-circulation dataset. The deployed app currently inspects CSV/XLSX files and may display the observed `LossesSeverity` class distribution. It does **not** train a model or generate predictions.
+This document records a cautious plan for a research-only first supervised-learning experiment using the publicly published Azadegan oilfield lost-circulation dataset. The deployed-app source in GitHub supports optional offline model experiments when `LossesSeverity` is detected. It can compare candidate classifiers for recorded-label diagnosis and run a separate same-row Severe/Complete-versus-other screen. The models are fitted within the app session and are not saved as reusable or operational models. The live deployment could not yet be confirmed in this review.
 
 ## Dataset profile reported for the supplied supplementary workbook
 
