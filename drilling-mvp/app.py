@@ -128,6 +128,65 @@ if target_column is not None:
         "predictive performance or operational risk."
     )
 
+# Diagnose whether loss-severity classes are distributed unevenly across measured depth.
+depth_column_for_audit = next(
+    (
+        col for col in df.columns
+        if "".join(char.lower() for char in str(col) if char.isalnum()) == "mdepth"
+    ),
+    None,
+)
+if target_column is not None and depth_column_for_audit is not None:
+    depth_audit = df[[depth_column_for_audit, target_column]].copy()
+    depth_audit[depth_column_for_audit] = pd.to_numeric(
+        depth_audit[depth_column_for_audit], errors="coerce"
+    )
+    depth_audit = depth_audit.dropna(subset=[depth_column_for_audit, target_column])
+    if len(depth_audit) >= 20 and depth_audit[depth_column_for_audit].nunique() >= 3:
+        try:
+            depth_audit["depth_band"] = pd.qcut(
+                depth_audit[depth_column_for_audit],
+                q=5,
+                duplicates="drop",
+            )
+            counts_by_depth = pd.crosstab(depth_audit["depth_band"], depth_audit[target_column])
+            counts_by_depth["TOTAL"] = counts_by_depth.sum(axis=1)
+            percentages_by_depth = pd.crosstab(
+                depth_audit["depth_band"],
+                depth_audit[target_column],
+                normalize="index",
+            ).mul(100).round(2)
+            st.subheader("Loss severity by measured-depth band")
+            st.caption(
+                "This descriptive audit groups observed records into up to five depth bands. "
+                "It shows where each class appears in this dataset; it is not a causal analysis "
+                "or a prediction. A class absent from a depth band cannot be evaluated there."
+            )
+            st.write("Record counts by depth band")
+            st.dataframe(counts_by_depth, use_container_width=True)
+            st.write("Within-band class percentages (%)")
+            st.dataframe(percentages_by_depth, use_container_width=True)
+            depth_plot = percentages_by_depth.reset_index().melt(
+                id_vars=["depth_band"],
+                var_name="loss_severity",
+                value_name="percent",
+            )
+            depth_fig = px.bar(
+                depth_plot,
+                x="depth_band",
+                y="percent",
+                color="loss_severity",
+                barmode="stack",
+                title="Observed loss-severity mix across measured-depth bands",
+            )
+            depth_fig.update_layout(
+                xaxis_title="Measured-depth band",
+                yaxis_title="Records within band (%)",
+            )
+            st.plotly_chart(depth_fig, use_container_width=True)
+        except (ValueError, TypeError) as exc:
+            st.info(f"Depth-band audit could not be created for this dataset: {exc}")
+
 st.subheader("Preview")
 st.dataframe(df.head(100), use_container_width=True)
 
@@ -172,7 +231,7 @@ if numeric_cols:
         st.info("At least four non-missing numeric values are needed for this screening.")
 
 # Optional exploratory classifier. This is not an operational prediction tool.
-EVALUATION_SCHEMA_VERSION = 5
+EVALUATION_SCHEMA_VERSION = 6
 baseline_results = st.session_state.get("baseline_eval_results")
 if baseline_results and (
     baseline_results.get("dataset_fingerprint") != dataset_fingerprint
