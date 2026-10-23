@@ -16,6 +16,7 @@ from sklearn.metrics import (
     balanced_accuracy_score,
     confusion_matrix,
     f1_score,
+    fbeta_score,
     precision_recall_fscore_support,
 )
 from sklearn.model_selection import train_test_split
@@ -233,7 +234,7 @@ if numeric_cols:
         st.info("At least four non-missing numeric values are needed for this screening.")
 
 # Optional exploratory classifier. This is not an operational prediction tool.
-EVALUATION_SCHEMA_VERSION = 7
+EVALUATION_SCHEMA_VERSION = 9
 baseline_results = st.session_state.get("baseline_eval_results")
 if baseline_results and (
     baseline_results.get("dataset_fingerprint") != dataset_fingerprint
@@ -487,6 +488,182 @@ if target_column is not None:
                     majority_pred = majority.predict(X_test)
                     predictions = model.predict(X_test)
 
+                    # Separate critical-loss screening task: Severe/Complete vs all other labels.
+                    # Threshold/model selection uses inner validation only; final metrics use outer test.
+                    critical_pattern = r"severe|complete"
+                    critical_train_inner = inner_train_y.astype(str).str.contains(
+                        critical_pattern, case=False, regex=True
+                    ).astype(int)
+                    critical_validation_y = validation_y.astype(str).str.contains(
+                        critical_pattern, case=False, regex=True
+                    ).astype(int)
+                    critical_train_y = y_train.astype(str).str.contains(
+                        critical_pattern, case=False, regex=True
+                    ).astype(int)
+                    critical_test_y = y_test.astype(str).str.contains(
+                        critical_pattern, case=False, regex=True
+                    ).astype(int)
+
+                    critical_candidate_specs = [
+                        (
+                            "Random Forest · balanced_subsample",
+                            RandomForestClassifier(
+                                n_estimators=150,
+                                min_samples_leaf=1,
+                                class_weight="balanced_subsample",
+                                random_state=71,
+                                n_jobs=-1,
+                            ),
+                        ),
+                        (
+                            "Extra Trees · balanced",
+                            ExtraTreesClassifier(
+                                n_estimators=150,
+                                min_samples_leaf=1,
+                                class_weight="balanced",
+                                random_state=72,
+                                n_jobs=-1,
+                            ),
+                        ),
+                        (
+                            "Decision Tree · balanced",
+                            DecisionTreeClassifier(
+                                class_weight="balanced",
+                                min_samples_leaf=3,
+                                random_state=73,
+                            ),
+                        ),
+                    ]
+
+                    critical_candidate_validation = []
+                    if critical_train_inner.nunique() < 2 or critical_validation_y.nunique() < 2:
+                        critical_screen_results = {
+                            "available": False,
+                            "reason": (
+                                "The internal training/validation split does not contain both "
+                                "critical and non-critical examples."
+                            ),
+                        }
+                    else:
+                        thresholds = np.round(np.arange(0.05, 1.00, 0.05), 2)
+                        for critical_name, critical_model in critical_candidate_specs:
+                            critical_model.fit(
+                                inner_train_X,
+                                critical_train_inner,
+                            )
+                            critical_val_prob = critical_model.predict_proba(validation_X)[
+                                :, list(critical_model.classes_).index(1)
+                            ]
+                            best_threshold = 0.50
+                            best_validation_metrics = None
+                            for threshold in thresholds:
+                                val_binary_pred = (critical_val_prob >= threshold).astype(int)
+                                precision_pos, recall_pos, f1_pos, _ = precision_recall_fscore_support(
+                                    critical_validation_y,
+                                    val_binary_pred,
+                                    labels=[1],
+                                    average=None,
+                                    zero_division=0,
+                                )
+                                f2_pos = fbeta_score(
+                                    critical_validation_y,
+                                    val_binary_pred,
+                                    beta=2,
+                                    zero_division=0,
+                                )
+                                selection_metrics = {
+                                    "threshold": float(threshold),
+                                    "validation_f2": float(f2_pos),
+                                    "validation_precision": float(precision_pos[0]),
+                                    "validation_recall": float(recall_pos[0]),
+                                    "validation_f1": float(f1_pos[0]),
+                                }
+                                selection_key = (
+                                    selection_metrics["validation_f2"],
+                                    selection_metrics["validation_recall"],
+                                    selection_metrics["validation_precision"],
+                                    selection_metrics["threshold"],
+                                )
+                                if (
+                                    best_validation_metrics is None
+                                    or selection_key > best_validation_metrics["selection_key"]
+                                ):
+                                    best_validation_metrics = {
+                                        **selection_metrics,
+                                        "selection_key": selection_key,
+                                    }
+                                    best_threshold = float(threshold)
+                            critical_candidate_validation.append({
+                                "candidate": critical_name,
+                                "selected_threshold": best_threshold,
+                                "validation_precision": round(best_validation_metrics["validation_precision"], 4),
+                                "validation_recall": round(best_validation_metrics["validation_recall"], 4),
+                                "validation_f1": round(best_validation_metrics["validation_f1"], 4),
+                                "validation_f2": round(best_validation_metrics["validation_f2"], 4),
+                                "_selection_key": best_validation_metrics["selection_key"],
+                            })
+
+                        critical_candidate_validation.sort(
+                            key=lambda item: item["_selection_key"],
+                            reverse=True,
+                        )
+                        best_critical_candidate = critical_candidate_validation[0]
+                        selected_critical_name = best_critical_candidate["candidate"]
+                        selected_critical_threshold = best_critical_candidate["selected_threshold"]
+                        selected_critical_model = next(
+                            candidate for name, candidate in critical_candidate_specs
+                            if name == selected_critical_name
+                        )
+                        selected_critical_model.fit(X_train, critical_train_y)
+                        critical_test_prob = selected_critical_model.predict_proba(X_test)[
+                            :, list(selected_critical_model.classes_).index(1)
+                        ]
+                        critical_test_pred = (
+                            critical_test_prob >= selected_critical_threshold
+                        ).astype(int)
+                        critical_cm = confusion_matrix(
+                            critical_test_y,
+                            critical_test_pred,
+                            labels=[0, 1],
+                        )
+                        tn, fp, fn, tp = [int(v) for v in critical_cm.ravel()]
+                        critical_precision, critical_recall, critical_f1, _ = precision_recall_fscore_support(
+                            critical_test_y,
+                            critical_test_pred,
+                            labels=[1],
+                            average=None,
+                            zero_division=0,
+                        )
+                        critical_screen_results = {
+                            "available": True,
+                            "task": "Severe Loss or Complete Loss vs all other classes",
+                            "selected_model": selected_critical_name,
+                            "threshold_selected_on_internal_validation": selected_critical_threshold,
+                            "validation_metric_for_selection": "F2 (recall-weighted), tie-break by recall, then precision, then higher threshold",
+                            "candidate_validation_results": [
+                                {k: v for k, v in item.items() if not k.startswith("_")}
+                                for item in critical_candidate_validation
+                            ],
+                            "training_critical_rows": int(critical_train_y.sum()),
+                            "test_critical_rows": int(critical_test_y.sum()),
+                            "predicted_critical_rows": int(critical_test_pred.sum()),
+                            "test_precision_critical": round(float(critical_precision[0]), 4),
+                            "test_recall_critical": round(float(critical_recall[0]), 4),
+                            "test_f1_critical": round(float(critical_f1[0]), 4),
+                            "test_f2_critical": round(float(fbeta_score(critical_test_y, critical_test_pred, beta=2, zero_division=0)), 4),
+                            "test_specificity": round(float(tn / (tn + fp)), 4) if (tn + fp) else None,
+                            "true_negatives": tn,
+                            "false_positives": fp,
+                            "false_negatives": fn,
+                            "true_positives": tp,
+                            "confusion_matrix_labels": ["Other severity", "Severe/Complete Loss"],
+                            "validation_limitation": (
+                                "Binary critical-loss screening on recorded class labels, not a future-event early-warning model. "
+                                "The depth-block test has no Complete Loss test examples, so the result measures high-severity "
+                                "screening only on critical classes actually present in this test block."
+                            ),
+                        }
+
                     # Hard consistency checks: every test row must have one true label and one prediction.
                     train_class_counts = {str(k): int(v) for k, v in y_train.value_counts().items()}
                     test_class_counts = {str(k): int(v) for k, v in y_test.value_counts().items()}
@@ -541,6 +718,7 @@ if target_column is not None:
                         "model": selected_model_name,
                         "selected_model_validation_metrics": selected_validation_metrics,
                         "candidate_validation_results": candidate_validation_results,
+                        "critical_loss_screen": critical_screen_results,
                         "model_selection_rule": "Highest internal validation Macro F1 over the known class list; tie-breaker is balanced accuracy. Five candidates compared.",
                         "baseline": "DummyClassifier(strategy='most_frequent')",
                         "random_state": 42,
@@ -615,6 +793,52 @@ if target_column is not None:
             ])
             st.subheader("Candidate comparison on training-only validation data")
             st.dataframe(candidate_table, use_container_width=True, hide_index=True)
+
+            critical_screen = baseline_results.get("critical_loss_screen", {})
+            st.subheader("Critical-loss screening experiment (Severe/Complete vs other classes)")
+            st.warning(
+                "This separate binary classifier tries to identify records labelled Severe Loss or Complete Loss. "
+                "It is not a real-time early-warning model; it classifies recorded labels using the same-row inputs. "
+                "Lowering the threshold may improve recall but can increase false alarms."
+            )
+            if not critical_screen.get("available", False):
+                st.error(critical_screen.get("reason", "Critical-loss screening is unavailable for this split."))
+            else:
+                critical_candidate_table = pd.DataFrame(critical_screen["candidate_validation_results"])
+                st.caption(
+                    "Critical-screen candidates and thresholds were selected using internal validation data only. "
+                    "The final row of metrics below is measured on the held-out test block."
+                )
+                st.dataframe(critical_candidate_table, use_container_width=True, hide_index=True)
+                st.caption(
+                    f"Selected: {critical_screen['selected_model']} at probability threshold "
+                    f"{critical_screen['threshold_selected_on_internal_validation']:.2f}"
+                )
+                c1, c2, c3, c4 = st.columns(4)
+                c1.metric("Critical-loss precision", f"{critical_screen['test_precision_critical']:.1%}")
+                c2.metric("Critical-loss recall", f"{critical_screen['test_recall_critical']:.1%}")
+                c3.metric("Critical-loss F1", f"{critical_screen['test_f1_critical']:.3f}")
+                c4.metric("Critical-loss F2", f"{critical_screen['test_f2_critical']:.3f}")
+                c5, c6, c7, c8 = st.columns(4)
+                c5.metric("True positives", f"{critical_screen['true_positives']:,}")
+                c6.metric("Missed critical cases", f"{critical_screen['false_negatives']:,}")
+                c7.metric("False alarms", f"{critical_screen['false_positives']:,}")
+                c8.metric("Specificity", f"{critical_screen['test_specificity']:.1%}" if critical_screen["test_specificity"] is not None else "N/A")
+                critical_cm_df = pd.DataFrame(
+                    [
+                        [critical_screen["true_negatives"], critical_screen["false_positives"]],
+                        [critical_screen["false_negatives"], critical_screen["true_positives"]],
+                    ],
+                    index=["Actual: Other severity", "Actual: Severe/Complete"],
+                    columns=["Predicted: Other severity", "Predicted: Severe/Complete"],
+                )
+                st.dataframe(critical_cm_df, use_container_width=True, hide_index=False)
+                st.caption(
+                    f"Test support — critical cases: {critical_screen['test_critical_rows']:,}; "
+                    f"predicted critical cases: {critical_screen['predicted_critical_rows']:,}. "
+                    "Complete Loss has no true examples in the high-depth test block, so that class cannot be evaluated independently."
+                )
+
             m1, m2, m3, m4 = st.columns(4)
             m1.metric("Majority baseline accuracy", f"{baseline_results['majority_baseline_accuracy']:.1%}")
             m2.metric("Selected model accuracy", f"{baseline_results['selected_model_accuracy']:.1%}")
