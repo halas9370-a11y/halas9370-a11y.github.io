@@ -235,7 +235,7 @@ if numeric_cols:
         st.info("At least four non-missing numeric values are needed for this screening.")
 
 # Optional exploratory classifier. This is not an operational prediction tool.
-EVALUATION_SCHEMA_VERSION = 11
+EVALUATION_SCHEMA_VERSION = 12
 baseline_results = st.session_state.get("baseline_eval_results")
 if baseline_results and (
     baseline_results.get("dataset_fingerprint") != dataset_fingerprint
@@ -271,8 +271,16 @@ if target_column is not None:
             "block. The same wells may still appear in both partitions; this is not a well-held-out "
             "test. Do not use predictions for operational decisions."
         )
+    numeric_columns = df.select_dtypes(include="number").columns.tolist()
+    depth_column_for_split = next(
+        (
+            col for col in numeric_columns
+            if "".join(char.lower() for char in str(col) if char.isalnum()) == "mdepth"
+        ),
+        None,
+    )
     feature_columns = [
-        col for col in df.select_dtypes(include="number").columns.tolist()
+        col for col in numeric_columns
         if col != target_column
         and "".join(char.lower() for char in str(col) if char.isalnum()) != "mdepth"
     ]
@@ -286,7 +294,10 @@ if target_column is not None:
     else:
         if st.button("Compare models and evaluate selected candidate", key="run_baseline_model"):
             try:
-                usable = df.loc[df[target_column].notna(), feature_columns + [target_column]].copy()
+                usable_columns = list(feature_columns) + [target_column]
+                if depth_column_for_split is not None and depth_column_for_split not in usable_columns:
+                    usable_columns.append(depth_column_for_split)
+                usable = df.loc[df[target_column].notna(), usable_columns].copy()
                 for col in feature_columns:
                     usable[col] = pd.to_numeric(usable[col], errors="coerce")
                 usable[feature_columns] = usable[feature_columns].replace([np.inf, -np.inf], np.nan)
@@ -319,13 +330,7 @@ if target_column is not None:
                             "columns do not identify wells. Metrics are exploratory only."
                         )
                     else:
-                        depth_column = next(
-                            (
-                                col for col in feature_columns
-                                if "".join(char.lower() for char in str(col) if char.isalnum()) == "mdepth"
-                            ),
-                            None,
-                        )
+                        depth_column = depth_column_for_split
                         if depth_column is None:
                             st.error(
                                 "The depth-block stress test requires a numeric M.Depth column."
