@@ -91,3 +91,8 @@ The app now reports two explicit Macro F1 values:
 
 Candidate selection on the internal validation split also passes the complete known class list explicitly to Macro F1. Balanced accuracy is still computed on classes represented in the true test labels; a class absent from the test set cannot have its recall measured. Always publish per-class support and recall alongside aggregate scores. If Complete Loss has zero test support, the experiment cannot validate Complete Loss detection, regardless of aggregate metrics.
 
+## Depth-band label distribution audit
+
+The app now groups the dataset into up to five quantile-based measured-depth bands and reports both the number and within-band percentage of each observed `LossesSeverity` class. This audit helps test whether classes are concentrated in certain depth ranges and whether a depth-block test excludes rare classes. It is descriptive only: it does not establish that depth causes loss severity, does not validate predictions, and cannot replace well-level split validation.
+
+
