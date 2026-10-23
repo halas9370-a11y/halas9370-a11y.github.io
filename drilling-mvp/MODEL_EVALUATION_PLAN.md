@@ -153,10 +153,40 @@ The held-out test probabilities are diagnostic only. Do not use test results to 
 
 ## Foundation cleanup and grouped-screen safeguards (2026-10-24)
 
-- The app code now excludes M.Depth from numeric predictor features for recorded-label experiments; depth remains available to form the depth-block holdout and for descriptive depth-band analyses. The evaluation schema version was incremented so older saved session metrics are discarded.
-- A separate grouped script was tested on a generated synthetic workbook only. The original Azadegan XLSX was not present in the execution workspace for this run, so no new grouped-evaluation numbers from the actual Azadegan data are claimed here. Re-run against the original workbook before publishing new results.
-- The supplied script's original severe_flag comparison can miss floating-point numeric codes such as 4.0 and 5.0; parse numeric strings/numbers explicitly and fail visibly if no critical class labels are recognized.
-- Depth-reset segments can be used as **proxy groups only** until mapped to actual well IDs. Do not equate similar mud-property signatures to calendar days or independent wells. If row order does not support a plausible segmentation, stop and seek real Well IDs rather than automatically claiming a leave-one-well-out result.
-- Published Table 2 states FlowIn in gpm and FlowOut in percent (0–100). Do not subtract these fields directly. A pressure/flow rule must be defined and reviewed with an engineer after the FlowOut sensor semantics and any unit conversion are verified.
-- Average precision should be compared with the positive-class prevalence, and recall at a fixed alert budget reported alongside confidence intervals resampled by groups. These grouped bootstrap intervals condition on cross-validated out-of-group scores and do not capture every source of training uncertainty.
-- This binary script screens the **recorded** Severe/Complete labels on the same row. It does not evaluate future event onset or warning lead time. A prospective 30-minute/one-hour target requires timestamps and reliable event start times.
+- The app code excludes M.Depth from numeric predictor features for recorded-label experiments. Depth remains available for descriptive depth-band analyses and to define the depth-block holdout only. The evaluation schema version is incremented when predictor/evaluation logic changes so stale session metrics are discarded.
+- The original Azadegan workbook was subsequently tested with a grouped-proxy evaluation. Results and uncertainty summaries below are exploratory; the inferred groups are **not verified well IDs**.
+- The target labels in the uploaded workbook are text values (No-Loss, Seepage Loss, Partial Loss, Severe Loss, Complete Loss), so the numeric 4.0/5.0 issue is not present in this file. The hardened script still handles text and numeric target encodings in case other copies differ.
+- Depth-reset segments are only proxy groups. Do not equate similar mud-property signatures to calendar days or independent wells. The actual file produces 22 segments, compared with the 20 wells described in the source paper; seven inferred segments start deeper than 500 m, including a short segment covering only 3,704–4,285 m. The row-to-well mapping must be obtained or confirmed before claiming leave-one-well-out validation.
+- Published Table 2 describes FlowIn in gpm and FlowOut in percent (0–100, with reported values up to about 100.1). Do not subtract these fields directly. A pressure/flow rule must be defined and reviewed with an engineer after verifying FlowOut sensor semantics, calibration, and operating context.
+- Average precision should be compared with positive-class prevalence, and recall at a fixed alert budget should be reported alongside group-bootstrap intervals. The intervals below resample the inferred proxy groups while holding out-of-group scores fixed; they do not capture full model-fitting uncertainty.
+
+## Observed grouped-proxy critical-loss screen on Azadegan (2026-10-24)
+
+### Dataset audit
+
+- 65,376 rows and 18 columns; no missing cells or exact duplicate rows detected.
+- Class counts: No-Loss 49,545; Seepage Loss 12,880; Partial Loss 2,647; Severe Loss 270; Complete Loss 34.
+- Severe plus Complete Loss: 304 rows (0.465%).
+- An always-noncritical classifier has about 99.535% accuracy and zero critical recall. This demonstrates why accuracy is not a useful standalone metric for this rare-event task.
+
+### Proxy-group reconstruction
+
+- 99.966% of adjacent depth steps are non-decreasing and 99.954% of absolute steps are 5 m or less, but the reset heuristic creates 22 segments rather than the 20 wells documented in the paper.
+- Seven of the 22 inferred segments start deeper than 500 m. Only five inferred segments contain any Severe/Complete rows; Complete Loss rows occur in only two proxy segments.
+- Therefore, the run is leave-one-**proxy-segment**-out, not leave-one-well-out. These grouped results diagnose sensitivity to a plausible row-order grouping, but cannot establish performance on an unseen physical well.
+
+### Results
+
+The exploratory model is a HistGradientBoostingClassifier (max_depth=4, learning_rate=0.05, max_iter=200, balanced class weights) using numeric predictors while excluding M.Depth. It was evaluated with out-of-proxy-segment predictions. The positive prevalence baseline is 0.00465.
+
+| Experiment | Full out-of-group AP | Group-bootstrap AP median (95% interval) | Recall in top 5% alert budget (median; 95% interval) |
+|---|---:|---:|---:|
+| Numeric features including FlowIn and FlowOut | 0.0373 | 0.0401 (0.0010–0.1094) | 0.421 (0.000–0.857) |
+| Same features without FlowIn and FlowOut | 0.0315 | 0.0345 (0.0017–0.0857) | 0.332 (0.004–0.756) |
+| Simple ranking heuristic: lower FlowOut% ranks higher concern | 0.0107 | 0.0123 (0.0041–0.0503) | 0.167 (0.002–0.500) |
+
+The group-bootstrap summary used 300 replicates for this report. The AP intervals for both multivariable variants include or fall below the prevalence baseline, while intervals are very wide. The apparent lift in median AP is not sufficient evidence of a reliable detector because only five proxy groups contain critical examples and the groups are not verified wells. The FlowOut-only heuristic is a directional benchmark, not an approved alert rule. The with-flow / without-flow comparison does not prove or disprove target leakage.
+
+### Interpretation boundary
+
+This is retrospective same-row classification of recorded Severe/Complete labels. It is **not** a prediction of loss onset in the next 30 minutes or any other future horizon. A prospective early-warning model requires real Well IDs, timestamps, accurate loss-onset times and intervention logs, an engineer-defined horizon, and testing on future periods and entirely held-out wells. Do not use these findings for live drilling, well-control, or safety decisions.
