@@ -7,8 +7,9 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-from sklearn.dummy import DummyClassifier
-from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier, RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.utils.class_weight import compute_sample_weight
 from sklearn.metrics import (
     accuracy_score,
     balanced_accuracy_score,
@@ -231,7 +232,7 @@ if numeric_cols:
         st.info("At least four non-missing numeric values are needed for this screening.")
 
 # Optional exploratory classifier. This is not an operational prediction tool.
-EVALUATION_SCHEMA_VERSION = 6
+EVALUATION_SCHEMA_VERSION = 7
 baseline_results = st.session_state.get("baseline_eval_results")
 if baseline_results and (
     baseline_results.get("dataset_fingerprint") != dataset_fingerprint
@@ -374,6 +375,7 @@ if target_column is not None:
                                 random_state=42,
                                 n_jobs=-1,
                             ),
+                            False,
                         ),
                         (
                             "Random Forest · balanced · leaf=1",
@@ -384,6 +386,7 @@ if target_column is not None:
                                 random_state=43,
                                 n_jobs=-1,
                             ),
+                            False,
                         ),
                         (
                             "Extra Trees · balanced · leaf=1",
@@ -394,12 +397,43 @@ if target_column is not None:
                                 random_state=44,
                                 n_jobs=-1,
                             ),
+                            False,
+                        ),
+                        (
+                            "Decision Tree · balanced · leaf=2",
+                            DecisionTreeClassifier(
+                                class_weight="balanced",
+                                min_samples_leaf=2,
+                                random_state=45,
+                            ),
+                            False,
+                        ),
+                        (
+                            "AdaBoost · shallow tree · balanced sample weights",
+                            AdaBoostClassifier(
+                                estimator=DecisionTreeClassifier(max_depth=2, random_state=46),
+                                n_estimators=80,
+                                learning_rate=0.5,
+                                random_state=46,
+                            ),
+                            True,
                         ),
                     ]
 
                     candidate_validation_results = []
-                    for candidate_name, candidate_model in candidate_specs:
-                        candidate_model.fit(inner_train_X, inner_train_y)
+                    for candidate_name, candidate_model, use_sample_weights in candidate_specs:
+                        if use_sample_weights:
+                            candidate_weights = compute_sample_weight(
+                                class_weight="balanced",
+                                y=inner_train_y,
+                            )
+                            candidate_model.fit(
+                                inner_train_X,
+                                inner_train_y,
+                                sample_weight=candidate_weights,
+                            )
+                        else:
+                            candidate_model.fit(inner_train_X, inner_train_y)
                         validation_predictions = candidate_model.predict(validation_X)
                         val_precision, val_recall, val_f1, val_support = precision_recall_fscore_support(
                             validation_y,
@@ -437,12 +471,16 @@ if target_column is not None:
                             candidate_validation_results[i]["validation_balanced_accuracy"],
                         ),
                     )
-                    selected_model_name, model = candidate_specs[best_candidate_index]
+                    selected_model_name, model, selected_use_sample_weights = candidate_specs[best_candidate_index]
                     selected_validation_metrics = candidate_validation_results[best_candidate_index]
 
                     # Refit the selected candidate on all outer training rows, then evaluate
                     # once on the held-out test data.
-                    model.fit(X_train, y_train)
+                    if selected_use_sample_weights:
+                        training_weights = compute_sample_weight(class_weight="balanced", y=y_train)
+                        model.fit(X_train, y_train, sample_weight=training_weights)
+                    else:
+                        model.fit(X_train, y_train)
                     majority = DummyClassifier(strategy="most_frequent")
                     majority.fit(X_train, y_train)
                     majority_pred = majority.predict(X_test)
@@ -502,7 +540,7 @@ if target_column is not None:
                         "model": selected_model_name,
                         "selected_model_validation_metrics": selected_validation_metrics,
                         "candidate_validation_results": candidate_validation_results,
-                        "model_selection_rule": "Highest internal validation Macro F1; tie-breaker is balanced accuracy.",
+                        "model_selection_rule": "Highest internal validation Macro F1 over the known class list; tie-breaker is balanced accuracy. Five candidates compared.",
                         "baseline": "DummyClassifier(strategy='most_frequent')",
                         "random_state": 42,
                         "validation_method": split_method,
