@@ -27,6 +27,10 @@ The article page states that the article is licensed under Creative Commons Attr
 - Do not claim operational readiness or connect outputs to real-time drilling decisions. Qualified drilling professionals must review any future research results.
 - Do not upload confidential company data to the public prototype. Use only data with clear authorization and approved handling controls.
 
-## Current project status
+## Current project status (reviewed 2026-10-24)
 
-The current app is an exploratory data-quality tool. It does not train or run a lost-circulation prediction model. The candidate file has not yet been downloaded, parsed, or validated inside this project; its workbook schema and target-column mapping still need inspection.
+The current Streamlit app provides data-quality exploration and optional offline model-comparison experiments when it detects LossesSeverity. It fits candidate models in the current session; it does not save a reusable model or provide a live early-warning feed.
+
+The source article describes FlowIn in gpm and FlowOut in percent, so a direct FlowIn - FlowOut calculation is not valid without a verified transformation. The current app evaluation excludes M.Depth from predictor features, while the depth-block experiment may use depth only to define the holdout partition.
+
+A grouped evaluation must not be described as a held-out-well test unless inferred row-order segments are verified against actual Well IDs. Mud-property signatures are not timestamps or confirmed report-day identifiers.
