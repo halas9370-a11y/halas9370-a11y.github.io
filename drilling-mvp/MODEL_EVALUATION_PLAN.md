@@ -95,4 +95,32 @@ Candidate selection on the internal validation split also passes the complete kn
 
 The app now groups the dataset into up to five quantile-based measured-depth bands and reports both the number and within-band percentage of each observed `LossesSeverity` class. This audit helps test whether classes are concentrated in certain depth ranges and whether a depth-block test excludes rare classes. It is descriptive only: it does not establish that depth causes loss severity, does not validate predictions, and cannot replace well-level split validation.
 
+## Observed depth-band pattern from the supplied dataset (2026-10-23)
+
+The current 65,376-row Azadegan workbook shows clear changes in observed label mix across measured-depth bands. Based on the provided count table:
+
+| Measured-depth band | No-Loss | Seepage Loss | Partial Loss | Severe Loss | Complete Loss |
+|---|---:|---:|---:|---:|---:|
+| 14–985 | 97.62% | 2.25% | 0.14% | 0.00% | 0.00% |
+| 985–1,739 | 84.04% | 10.34% | 4.22% | 1.15% | 0.25% |
+| 1,739–2,432 | 74.10% | 19.52% | 6.22% | 0.16% | 0.00% |
+| 2,432–3,079 | 63.09% | 32.14% | 4.76% | 0.01% | 0.01% |
+| 3,079–4,285 | 60.04% | 34.30% | 4.91% | 0.75% | 0.00% |
+
+These counts show that the depth-block test at `M.Depth = 3004` has zero Complete Loss support in its higher-depth test block: all 34 Complete Loss records fall below the threshold. This split therefore cannot evaluate Complete Loss recall. The 98 Severe Loss examples in the deepest band are all part of the higher-depth test block in the reported audit, and the current candidate did not predict any Severe Loss examples there.
+
+Interpretation: the depth-block test indicates a meaningful shift in the label mix and a serious failure to identify severe losses in the deeper block. It does **not** establish why this shift occurs or prove that depth causes fluid loss. Factors may include different wells, formations, operational contexts, or a combination of variables. Do not tune repeatedly against the same held-out block and then present it as an independent test.
+
+## External dataset candidate: Marun oil field
+
+A separate public dataset is described for the Marun oil field (southwest Iran): 2,820 records extracted from drilling, mud, and final well reports for 305 wells. The published study describes 18 input variables and one continuous output, mud-loss severity rate (bbl/hr), rather than the same five-class `LossesSeverity` label in the Azadegan workbook. Source article: https://doi.org/10.1016/j.petrol.2020.108125. Dataset landing page: https://data.mendeley.com/datasets/hr7hbxdryp/1
+
+The Mendeley Data listing states a CC BY-NC 3.0 license. Treat this as **non-commercial research only** unless separate permission is obtained. Do not package, redistribute, or use it commercially in a paid service under this license without verifying rights and obtaining any required permission. This dataset is not a drop-in external test for the current classifier: its target is continuous, feature schema and units differ, and a Complete Loss class cannot be inferred safely from loss rate alone without a documented label for total loss of returns. It may support a separate regression-research track after checking the workbook schema, units, labels, provenance, and allowed use.
+
+## Next validation priorities
+
+1. Stop using higher-depth accuracy as the only criterion for improvement; report the complete absence of Complete Loss examples in this holdout every time.
+2. Determine whether row-to-well identity or a reliable mapping can be obtained from the authors or an original 22-variable database. The published cleaned workbook used here does not expose an obvious well ID in its 18 columns; `HoleSection` must not be treated as a well identifier.
+3. Keep candidate tuning restricted to the training/validation data. Once model selection is complete, evaluate exactly once on a properly defined final test.
+4. In parallel, inspect the Marun workbook only as a separately licensed research candidate. Do not claim direct cross-field validation until targets and features are made genuinely comparable.
 
