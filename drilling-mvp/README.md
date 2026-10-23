@@ -30,6 +30,17 @@ The app fits models in memory during the selected experiment. It does **not** sa
 - RESEARCH_PROTOCOL.md — claim, validation, and data-governance boundaries.
 - DATASET_CANDIDATE.md — Azadegan source and reuse notes.
 - DATA_DICTIONARY.md — published variable meanings, units, and unresolved checks.
+- halaloya_grouped_eval.py — grouped proxy-segment evaluation for severe/complete loss screening.
+
+## Grouped critical-loss screening (local/offline)
+
+Run from the drilling-mvp directory:
+
+```bash
+python halaloya_grouped_eval.py /path/to/42452_2021_4769_MOESM1_ESM.xlsx --bootstrap-reps 50 --out-json grouped_eval.json
+```
+
+The quick default uses 50 group-bootstrap resamples; use `--bootstrap-reps 300` or more if runtime allows and tighter uncertainty summaries are needed. The script checks row order and reconstructs **proxy segments**, not real wells. Its grouped scores must not be reported as leave-one-well-out validation unless the row-to-well mapping is verified. Results describe detection of same-row recorded labels, not a future-event early-warning model.
 
 ## Source
 
