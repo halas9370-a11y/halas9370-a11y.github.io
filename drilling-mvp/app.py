@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier, RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils.class_weight import compute_sample_weight
@@ -558,7 +559,7 @@ if target_column is not None:
                         "training_rows": int(len(y_train)),
                         "test_rows": int(len(y_test)),
                         "majority_baseline_accuracy": round(float(accuracy_score(y_test, majority_pred)), 4),
-                        "random_forest_accuracy": round(float(accuracy_score(y_test, predictions)), 4),
+                        "selected_model_accuracy": round(float(accuracy_score(y_test, predictions)), 4),
                         "balanced_accuracy": round(float(balanced_accuracy_score(y_test, predictions)), 4),
                         "balanced_accuracy_scope": "Classes represented in y_test; classes with zero true test support cannot be evaluated.",
                         "macro_f1": round(float(f1_score(
@@ -616,7 +617,7 @@ if target_column is not None:
             st.dataframe(candidate_table, use_container_width=True, hide_index=True)
             m1, m2, m3, m4 = st.columns(4)
             m1.metric("Majority baseline accuracy", f"{baseline_results['majority_baseline_accuracy']:.1%}")
-            m2.metric("Random forest accuracy", f"{baseline_results['random_forest_accuracy']:.1%}")
+            m2.metric("Selected model accuracy", f"{baseline_results['selected_model_accuracy']:.1%}")
             m3.metric("Balanced accuracy (classes present in test)", f"{baseline_results['balanced_accuracy']:.1%}")
             m4.metric("Macro F1 (all known classes)", f"{baseline_results['macro_f1_all_known_classes']:.3f}")
             st.metric(
