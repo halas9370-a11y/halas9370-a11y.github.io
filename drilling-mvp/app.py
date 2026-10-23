@@ -235,7 +235,7 @@ if numeric_cols:
         st.info("At least four non-missing numeric values are needed for this screening.")
 
 # Optional exploratory classifier. This is not an operational prediction tool.
-EVALUATION_SCHEMA_VERSION = 10
+EVALUATION_SCHEMA_VERSION = 11
 baseline_results = st.session_state.get("baseline_eval_results")
 if baseline_results and (
     baseline_results.get("dataset_fingerprint") != dataset_fingerprint
@@ -274,10 +274,12 @@ if target_column is not None:
     feature_columns = [
         col for col in df.select_dtypes(include="number").columns.tolist()
         if col != target_column
+        and "".join(char.lower() for char in str(col) if char.isalnum()) != "mdepth"
     ]
     st.caption(
         f"Target: {target_column}. Numeric input features available: {len(feature_columns)}. "
-        "The target column is excluded from the model inputs."
+        "The target and M.Depth columns are excluded from model inputs in this evaluation; "
+        "depth is used only for depth-band audits and, when selected, to define the depth-block split."
     )
     if len(feature_columns) < 2:
         st.error("At least two numeric input features are required for this experimental baseline.")
@@ -983,7 +985,7 @@ if target_column is not None:
                     x="importance",
                     y="feature",
                     orientation="h",
-                    title="Top Random Forest feature importances",
+                    title="Top feature importances in the selected model",
                 )
                 st.plotly_chart(importance_fig, use_container_width=True)
                 st.caption(
