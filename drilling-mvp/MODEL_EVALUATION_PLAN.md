@@ -137,3 +137,11 @@ The inclusion of Decision Tree and AdaBoost is motivated by the 2022 published a
 
 The candidates are selected by internal-validation Macro F1 over all known classes, with balanced accuracy as a tie-breaker. The chosen estimator is refit on the outer training partition before evaluation on the held-out partition. This remains exploratory: depth-block holdout is not well-held-out validation, and the rare complete-loss class is absent in the high-depth block. The selected-model test accuracy is now labelled generically rather than as Random Forest accuracy.
 
+## Separate binary critical-loss screen (2026-10-23)
+
+Because the multiclass candidate comparison selected models that predicted zero Severe Loss and Complete Loss in the high-depth test block, the app now also runs a distinct binary screening experiment: `Severe Loss` or `Complete Loss` versus all other recorded classes.
+
+Three class-weighted candidates (Random Forest, Extra Trees, and Decision Tree) are compared using only the same inner validation subset carved from the outer training rows. For each candidate, a probability threshold is selected to maximize positive-class F2, with recall, precision, and then the higher threshold as tie-breakers. The selected candidate is refit on all outer training rows, and its binary metrics are evaluated on the held-out depth block. The report includes precision, recall, F1, F2, specificity, false positives, false negatives, true positives, and the chosen threshold.
+
+This is a screening experiment on recorded labels, not a future-event early-warning model. The depth-block test has no Complete Loss records, so it cannot evaluate Complete Loss independently. A higher recall threshold may substantially increase false alarms. Any metric changes must be interpreted together with missed critical cases and false alarms, and this experiment does not establish transfer to unseen wells or operational safety.
+
