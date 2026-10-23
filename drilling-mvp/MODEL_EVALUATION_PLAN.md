@@ -151,3 +151,12 @@ The binary critical-loss screen now reports the threshold selected using interna
 
 The held-out test probabilities are diagnostic only. Do not use test results to choose a replacement threshold and then report those same results as independent evaluation. If the test scores are low for actual severe-loss records, prioritize the data representation and validation design (well identity, neighboring-depth/context variables, chronology, formation/operational metadata) rather than threshold changes alone.
 
+## Foundation cleanup and grouped-screen safeguards (2026-10-24)
+
+- The app code now excludes M.Depth from numeric predictor features for recorded-label experiments; depth remains available to form the depth-block holdout and for descriptive depth-band analyses. The evaluation schema version was incremented so older saved session metrics are discarded.
+- A separate grouped script was tested on a generated synthetic workbook only. The original Azadegan XLSX was not present in the execution workspace for this run, so no new grouped-evaluation numbers from the actual Azadegan data are claimed here. Re-run against the original workbook before publishing new results.
+- The supplied script's original severe_flag comparison can miss floating-point numeric codes such as 4.0 and 5.0; parse numeric strings/numbers explicitly and fail visibly if no critical class labels are recognized.
+- Depth-reset segments can be used as **proxy groups only** until mapped to actual well IDs. Do not equate similar mud-property signatures to calendar days or independent wells. If row order does not support a plausible segmentation, stop and seek real Well IDs rather than automatically claiming a leave-one-well-out result.
+- Published Table 2 states FlowIn in gpm and FlowOut in percent (0–100). Do not subtract these fields directly. A pressure/flow rule must be defined and reviewed with an engineer after the FlowOut sensor semantics and any unit conversion are verified.
+- Average precision should be compared with the positive-class prevalence, and recall at a fixed alert budget reported alongside confidence intervals resampled by groups. These grouped bootstrap intervals condition on cross-validated out-of-group scores and do not capture every source of training uncertainty.
+- This binary script screens the **recorded** Severe/Complete labels on the same row. It does not evaluate future event onset or warning lead time. A prospective 30-minute/one-hour target requires timestamps and reliable event start times.
