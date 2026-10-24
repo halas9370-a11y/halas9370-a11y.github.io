@@ -31,6 +31,7 @@ The app fits models in memory during the selected experiment. It does **not** sa
 - DATASET_CANDIDATE.md — Azadegan source and reuse notes.
 - DATA_DICTIONARY.md — published variable meanings, units, and unresolved checks.
 - halaloya_grouped_eval.py — grouped proxy-segment evaluation for severe/complete loss screening.
+- halaloya_multiclass_proxy_eval.py — five-class recorded-severity diagnosis on explicitly opted-in depth-reset proxy groups.
 
 ## Grouped critical-loss screening (local/offline)
 
@@ -41,6 +42,15 @@ python halaloya_grouped_eval.py /path/to/42452_2021_4769_MOESM1_ESM.xlsx --allow
 ```
 
 The `--allow-depth-reset-proxy` option is required because the inferred groups are not verified Well IDs; the command runs a **proxy-segment** analysis only. The expected-count guard checks that the text label parser recognizes all 304 Severe/Complete rows in the supplied workbook, and stops before fitting if it does not. `--max-iter 30` and `--bootstrap-reps 50` produce a quick exploratory audit, not a final model selection. The script disables automatic early stopping, reports threshold-sensitivity and shuffled-order diagnostics, nearest-neighbour overlap and adversarial segment-distribution AUC, within-segment ranking metrics, bootstrap exclusions, and contiguous positive-label runs as proxy episodes. Those runs are not confirmed physical events.
+
+
+## Five-class recorded-severity evaluation (local/offline)
+
+```bash
+python halaloya_multiclass_proxy_eval.py /path/to/42452_2021_4769_MOESM1_ESM.xlsx --allow-depth-reset-proxy --expected-critical-count 304 --drop 50 --max-iter 30 --bootstrap-reps 1000 --out-json multiclass_eval.json --predictions-csv multiclass_oof.csv --confusion-csv confusion.csv
+```
+
+The explicit proxy flag is required. The 50 m depth-reset groups are **not verified Well IDs**; matching the segment count to the source paper's 20 wells does not prove identity. The model uses 30 fixed boosting iterations with early stopping disabled and reports a per-fold training-majority baseline, class-specific metrics, ordinal metrics, and group-bootstrap intervals conditional on fixed proxy-group predictions. The test is for recorded labels, not future-event early warning.
 
 ## Source
 
