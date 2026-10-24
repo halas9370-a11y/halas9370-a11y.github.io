@@ -306,3 +306,16 @@ Removing flow-related inputs reduced aggregate metrics slightly and increased Se
 As a secondary calculation from the main five-class model's predictions, treating either predicted Severe or predicted Complete as a binary critical alert yields 40 true positives out of 304 actual critical rows (13.16% recall), 1,149 false positives, and 3.36% precision. This is **not** the separately trained binary critical-loss model; it only aggregates the five-class model's predictions. It confirms that the multiclass model is not a useful critical-loss alert at this stage.
 
 A full reproduction of the multiclass run, including out-of-proxy-segment predictions and confusion matrix, is available in `drilling-mvp/halaloya_multiclass_proxy_eval.py`. The script requires explicit `--allow-depth-reset-proxy` opt-in and supports a critical-row count guard.
+
+### Grouping-threshold sensitivity (quick five-class check)
+
+To test whether the apparent multiclass result depends only on the chosen reset threshold, the same quick configuration was rerun with 10, 50, 200 and 500 m thresholds (10 iterations, 63 bins, minimum leaf size 30). These are within-experiment comparisons only; do not compare them directly to the primary 30-iteration model.
+
+| Reset threshold | Inferred segments | Accuracy | Balanced accuracy | Macro F1 | Severe recall | Complete recall |
+|---:|---:|---:|---:|---:|---:|---:|
+| 10 m | 23 | 62.85% | 29.84% | 0.276 | 3.33% | 0.00% |
+| 50 m | 22 | 62.94% | 29.86% | 0.276 | 3.33% | 0.00% |
+| 200 m | 21 | 63.08% | 29.99% | 0.277 | 3.33% | 0.00% |
+| 500 m | 20 | 62.49% | 29.83% | 0.275 | 3.33% | 0.00% |
+
+Scores are similar across these proxy-group thresholds, and Complete Loss recall remains zero. Changing the reset threshold alone does not solve the rare-class diagnosis problem. The fact that the 500 m threshold produces 20 segments is **not proof** those segments correspond to the 20 physical wells.
