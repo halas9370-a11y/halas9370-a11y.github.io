@@ -290,3 +290,19 @@ Removing the flow family modestly reduced aggregate scores while slightly increa
 5. Seek timestamps, event-onset labels and intervention logs before developing the second-stage early-warning model.
 
 Reproducible local script: `drilling-mvp/halaloya_multiclass_proxy_eval.py`. The run must explicitly include `--allow-depth-reset-proxy` and should use `--expected-critical-count 304` for the supplied workbook.
+
+### Flow-family ablation and critical-union view
+
+A separate quick sensitivity run used 10 boosting iterations, 63 bins, and minimum leaf size 30. This is a different model configuration from the main 30-iteration run, so compare feature variants only **within this table**:
+
+| Features | Accuracy | Balanced accuracy | Macro F1 | Severe recall | Complete recall |
+|---|---:|---:|---:|---:|---:|
+| All numeric features except target/depth | 62.94% | 29.86% | 0.276 | 3.33% | 0.00% |
+| Remove FlowIn, FlowOut, PumpStroke | 60.16% | 28.79% | 0.263 | 4.07% | 0.00% |
+| Also remove StandpipePressure | 57.20% | 28.85% | 0.252 | 4.44% | 0.00% |
+
+Removing flow-related inputs reduced aggregate metrics slightly and increased Severe recall by a small amount, while Complete recall remained zero. This is a sensitivity result, not evidence that flow variables leak the target or are uninformative.
+
+As a secondary calculation from the main five-class model's predictions, treating either predicted Severe or predicted Complete as a binary critical alert yields 40 true positives out of 304 actual critical rows (13.16% recall), 1,149 false positives, and 3.36% precision. This is **not** the separately trained binary critical-loss model; it only aggregates the five-class model's predictions. It confirms that the multiclass model is not a useful critical-loss alert at this stage.
+
+A full reproduction of the multiclass run, including out-of-proxy-segment predictions and confusion matrix, is available in `drilling-mvp/halaloya_multiclass_proxy_eval.py`. The script requires explicit `--allow-depth-reset-proxy` opt-in and supports a critical-row count guard.
