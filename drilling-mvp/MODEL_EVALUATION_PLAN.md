@@ -151,42 +151,67 @@ The binary critical-loss screen now reports the threshold selected using interna
 
 The held-out test probabilities are diagnostic only. Do not use test results to choose a replacement threshold and then report those same results as independent evaluation. If the test scores are low for actual severe-loss records, prioritize the data representation and validation design (well identity, neighboring-depth/context variables, chronology, formation/operational metadata) rather than threshold changes alone.
 
-## Foundation cleanup and grouped-screen safeguards (2026-10-24)
+## Grouped-proxy audit v2 on the original Azadegan workbook (2026-10-25)
 
-- The app code excludes M.Depth from numeric predictor features for recorded-label experiments. Depth remains available for descriptive depth-band analyses and to define the depth-block holdout only. The evaluation schema version is incremented when predictor/evaluation logic changes so stale session metrics are discarded.
-- The original Azadegan workbook was subsequently tested with a grouped-proxy evaluation. Results and uncertainty summaries below are exploratory; the inferred groups are **not verified well IDs**.
-- The target labels in the uploaded workbook are text values (No-Loss, Seepage Loss, Partial Loss, Severe Loss, Complete Loss), so the numeric 4.0/5.0 issue is not present in this file. The hardened script still handles text and numeric target encodings in case other copies differ.
-- Depth-reset segments are only proxy groups. Do not equate similar mud-property signatures to calendar days or independent wells. The actual file produces 22 segments, compared with the 20 wells described in the source paper; seven inferred segments start deeper than 500 m, including a short segment covering only 3,704–4,285 m. The row-to-well mapping must be obtained or confirmed before claiming leave-one-well-out validation.
-- Published Table 2 describes FlowIn in gpm and FlowOut in percent (0–100, with reported values up to about 100.1). Do not subtract these fields directly. A pressure/flow rule must be defined and reviewed with an engineer after verifying FlowOut sensor semantics, calibration, and operating context.
-- Average precision should be compared with positive-class prevalence, and recall at a fixed alert budget should be reported alongside group-bootstrap intervals. The intervals below resample the inferred proxy groups while holding out-of-group scores fixed; they do not capture full model-fitting uncertainty.
+### What was executed
 
-## Observed grouped-proxy critical-loss screen on Azadegan (2026-10-24)
+The supplied workbook was read directly from `42452_2021_4769_MOESM1_ESM.xlsx` and checked by a hardened script, with an expected critical-row count guard of 304. The binary label parser was also tested on `Severe_Loss`, repeated spaces, numeric 4.0/5.0, and strings "4.0"/"5". All are recognized by the current parser. Therefore, a claim that these specific cases silently become zero is not true for the current repository version; it may describe an older copy or a different implementation.
 
-### Dataset audit
+The run used `HistGradientBoostingClassifier(max_depth=4, learning_rate=0.05, max_iter=30, class_weight="balanced", early_stopping=False)`, leave-one-inferred-segment-out scoring, and 50 group-bootstrap repetitions. The 30-iteration setting is a **quick exploratory audit**, not a chosen final model. All metrics remain retrospective same-row screening results.
 
-- 65,376 rows and 18 columns; no missing cells or exact duplicate rows detected.
-- Class counts: No-Loss 49,545; Seepage Loss 12,880; Partial Loss 2,647; Severe Loss 270; Complete Loss 34.
-- Severe plus Complete Loss: 304 rows (0.465%).
-- An always-noncritical classifier has about 99.535% accuracy and zero critical recall. This demonstrates why accuracy is not a useful standalone metric for this rare-event task.
+### Data and row-order findings
 
-### Proxy-group reconstruction
+- 65,376 rows, 18 columns, zero missing cells, zero exact duplicate rows.
+- Recorded class counts: No-Loss 49,545; Seepage Loss 12,880; Partial Loss 2,647; Severe Loss 270; Complete Loss 34. Severe + Complete = 304 rows (0.465%).
+- A model that always predicts noncritical has 99.535% accuracy but zero critical recall. Accuracy alone is therefore uninformative for this task.
+- At a 50 m reset threshold, row order yields 22 inferred segments, of which only 5 contain any critical row and 2 contain Complete Loss. Seven inferred segments start deeper than 500 m.
+- Sensitivity to reset threshold: 23 segments at 10 m; 22 at 50 m; 21 at 200 m; 20 at 500 m. Matching the published count at 500 m is not proof of correct well identity.
+- Of 21 boundaries at 50 m, 18 also change HoleSection and all 21 show a change in at least one mud-property field. These are supporting clues, not a validated row-to-well map.
+- The shuffled-depth negative control yields 31,863 segments at 50 m, versus 22 in the original ordering; only about 0.26% of shuffled adjacent steps are within 5 m, compared with 99.95% in the original. This strongly supports that the workbook is depth-ordered. It does **not** prove every inferred segment is a complete physical well.
+- A sampled nearest-neighbour audit (1,000 rows, features exclude target and depth) found median nearest-neighbour distance 0.866 within the same proxy segment versus 1.620 across proxy segments; in 13.1% of paired sampled rows the nearest cross-segment neighbour was at least as close as the nearest same-segment neighbour. This flags some feature-space overlap but cannot prove leakage or physical well identity.
+- A one-vs-rest adversarial distribution-separability audit for each segment versus all other segments gave median ROC-AUC 0.943 (range 0.833–0.995). High AUC means the segment's feature distribution is distinguishable from other segments; low AUC would mean it is not distinguishable under this setup. Neither high nor low AUC establishes whether segments correspond to different wells. This AUC is a distribution-shift diagnostic, not an identity test.
+- The model run remains leave-one-**proxy-segment**-out, not leave-one-well-out. A real Well ID or documented row-to-well map is still required.
 
-- 99.966% of adjacent depth steps are non-decreasing and 99.954% of absolute steps are 5 m or less, but the reset heuristic creates 22 segments rather than the 20 wells documented in the paper.
-- Seven of the 22 inferred segments start deeper than 500 m. Only five inferred segments contain any Severe/Complete rows; Complete Loss rows occur in only two proxy segments.
-- Therefore, the run is leave-one-**proxy-segment**-out, not leave-one-well-out. These grouped results diagnose sensitivity to a plausible row-order grouping, but cannot establish performance on an unseen physical well.
+### Revised metric methodology
 
-### Results
+The previous procedure compared a bootstrap interval for average precision (AP) with a single prevalence value from the full dataset. That comparison does not account for prevalence varying between bootstrap samples. It also silently omitted bootstrap samples without positive groups and pooled probability scores from different fitted fold models.
 
-The exploratory model is a HistGradientBoostingClassifier (max_depth=4, learning_rate=0.05, max_iter=200, balanced class weights) using numeric predictors while excluding M.Depth. It was evaluated with out-of-proxy-segment predictions. The positive prevalence baseline is 0.00465.
+The revised script now:
+- explicitly guards the recognized critical count when `--expected-critical-count 304` is supplied;
+- disables automatic early stopping and records a fixed iteration count;
+- reports the number of bootstrap replicates with no positive groups that are excluded from the undefined AP-delta summary;
+- reports per-segment AP and AP minus that segment's local prevalence, then bootstraps segments;
+- ranks rows **within each held-out segment** for alert-budget metrics rather than treating probabilities from different fold-specific models as directly comparable;
+- reports alert precision/row recall and a proxy-run detection metric; and
+- labels pooled out-of-fold AP as secondary/uncalibrated across fold models.
 
-| Experiment | Full out-of-group AP | Group-bootstrap AP median (95% interval) | Recall in top 5% alert budget (median; 95% interval) |
-|---|---:|---:|---:|
-| Numeric features including FlowIn and FlowOut | 0.0373 | 0.0401 (0.0010–0.1094) | 0.421 (0.000–0.857) |
-| Same features without FlowIn and FlowOut | 0.0315 | 0.0345 (0.0017–0.0857) | 0.332 (0.004–0.756) |
-| Simple ranking heuristic: lower FlowOut% ranks higher concern | 0.0107 | 0.0123 (0.0041–0.0503) | 0.167 (0.002–0.500) |
+The "proxy runs" are simply contiguous Severe/Complete-labelled rows within an inferred segment. With no event timestamp or event ID, they are not confirmed physical loss events.
 
-The group-bootstrap summary used 300 replicates for this report. The AP intervals for both multivariable variants include or fall below the prevalence baseline, while intervals are very wide. The apparent lift in median AP is not sufficient evidence of a reliable detector because only five proxy groups contain critical examples and the groups are not verified wells. The FlowOut-only heuristic is a directional benchmark, not an approved alert rule. The with-flow / without-flow comparison does not prove or disprove target leakage.
+### Quick grouped-proxy results (30 iterations; 50 bootstrap repetitions)
 
-### Interpretation boundary
+Critical prevalence in the data is 0.465%. The values below are exploratory and conditional on the inferred groups and fixed out-of-segment scores.
 
-This is retrospective same-row classification of recorded Severe/Complete labels. It is **not** a prediction of loss onset in the next 30 minutes or any other future horizon. A prospective early-warning model requires real Well IDs, timestamps, accurate loss-onset times and intervention logs, an engineer-defined horizon, and testing on future periods and entirely held-out wells. Do not use these findings for live drilling, well-control, or safety decisions.
+| Feature set | Pooled OOF AP (secondary only) | Macro AP within the 5 positive proxy segments | Bootstrap median of mean (segment AP − local prevalence), 95% interval | Row recall at top 5% alerts per segment (median, 95% interval) | Proxy-run recall at top 5% alerts per segment (median, 95% interval) |
+|---|---:|---:|---:|---:|---:|
+| All numeric features except target and M.Depth | 0.0476 | 0.1232 | 0.0941 (0.0224–0.2750) | 0.194 (0.000–0.396) | 0.316 (0.000–1.000) |
+| Without FlowIn + FlowOut + PumpStroke | 0.0273 | 0.1158 | 0.0986 (0.0097–0.2878) | 0.324 (0.005–0.627) | 0.224 (0.025–0.500) |
+| Without that family and without StandpipePressure | 0.0258 | 0.1591 | 0.1353 (0.0128–0.3325) | 0.296 (0.019–0.531) | 0.239 (0.009–0.731) |
+| FlowOut-only directional ranking heuristic (not an alarm rule) | 0.0107 | 0.2353 | 0.2144 (0.0940–0.3748) | 0.336 (0.095–0.532) | 0.703 (0.500–0.810) |
+
+For the first feature set, 1 of 50 bootstrap replicates contained no positive groups and was excluded from the AP-delta statistic; that count is now visible. All intervals are based on only 22 proxy segments, with positives in five of them. They do not incorporate full model retraining uncertainty. The event-like metric uses 13 contiguous positive-label runs, not independently confirmed events or timestamps.
+
+### Interpretation and remaining blockers
+
+- The ranking signals vary by feature set, and some segment-level AP differences exceed local prevalence. However, the number of positive proxy segments is small, the grouping is not verified, and the model run uses only 30 fixed boosting iterations. These results are not enough to claim a reliable detector.
+- The FlowOut-only heuristic is a retrospective comparator. It must not be promoted to an alarm rule without validating sensor meaning, operating context and engineering costs. FlowIn is reported in gpm and FlowOut in percent; subtracting these units directly is invalid.
+- The grouped script still performs a **binary** Severe/Complete-versus-other evaluation. It is not a substitute for the separate Phase 1 multiclass evaluation across all five recorded severity classes.
+- AUC near 0.5 in adversarial validation does not prove two groups are the same well; it only indicates that the chosen feature distribution was not distinguishable in this test.
+- Early warning remains out of scope until real timestamps, Well IDs, event-onset times and intervention records are available.
+
+### Reproducible command
+
+```bash
+python halaloya_grouped_eval.py 42452_2021_4769_MOESM1_ESM.xlsx --allow-depth-reset-proxy --expected-critical-count 304 --bootstrap-reps 50 --max-iter 30 --out-json HalaLoya_Azadegan_grouped_eval_v2.json --segments-csv HalaLoya_Azadegan_segments_v2.csv
+```
+
+Before publication, rerun with a larger bootstrap count (e.g. 300 or more) and pre-specified fixed iteration settings, and do not describe these proxy groups as wells without a source mapping.
