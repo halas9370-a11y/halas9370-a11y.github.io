@@ -215,3 +215,78 @@ python halaloya_grouped_eval.py 42452_2021_4769_MOESM1_ESM.xlsx --allow-depth-re
 ```
 
 Before publication, rerun with a larger bootstrap count (e.g. 300 or more) and pre-specified fixed iteration settings, and do not describe these proxy groups as wells without a source mapping.
+
+## Phase 1 — five-class diagnosis on inferred depth-reset proxy groups (2026-10-25)
+
+### Experiment definition
+
+The original Azadegan workbook was evaluated with a separate five-class experiment. Each row received an out-of-group prediction from a model trained without its inferred depth-reset segment. Group boundaries were inferred whenever measured depth fell by more than 50 m between adjacent rows. These are **proxy segments, not verified well IDs**.
+
+- Rows: 65,376; columns: 18; missing cells: 0; exact duplicate rows: 0.
+- Label counts: No-Loss 49,545; Seepage Loss 12,880; Partial Loss 2,647; Severe Loss 270; Complete Loss 34.
+- Severe + Complete: 304 rows (0.465%).
+- Predictors: 16 numeric columns, excluding both LossesSeverity and M.Depth.
+- Model: HistGradientBoostingClassifier, max_depth=4, learning_rate=0.05, max_iter=30, class_weight=balanced, early_stopping=False, random_state=0.
+- Validation: leave-one-inferred-depth-reset-proxy-segment-out across 22 segments. No verified Well IDs are available in the workbook.
+
+### Main results
+
+| Metric | Model | Per-fold training-majority baseline |
+|---|---:|---:|
+| Accuracy | 67.12% | 75.78% |
+| Balanced accuracy | 29.56% | 20.00% |
+| Macro F1 (all five classes) | 0.281 | 0.172 |
+| Weighted F1 | 0.693 | 0.653 |
+| Quadratic weighted kappa | 0.282 | 0.000 |
+| Ordinal MAE (class distance) | 0.405 | 0.292 |
+
+The model gives up overall accuracy compared with the majority baseline, while improving balanced accuracy and macro F1. That is a trade-off, not a general win: the critical classes still perform very poorly. The ordinal MAE is worse than the baseline, so the model is not consistently improving distance-sensitive severity errors.
+
+### Per-class results
+
+| Recorded class | Precision | Recall | F1 | True test support | Model predictions |
+|---|---:|---:|---:|---:|---:|
+| No-Loss | 84.73% | 74.11% | 0.791 | 49,545 | 43,334 |
+| Seepage Loss | 38.50% | 51.61% | 0.441 | 12,880 | 17,267 |
+| Partial Loss | 14.11% | 19.12% | 0.162 | 2,647 | 3,586 |
+| Severe Loss | 0.73% | 2.96% | 0.012 | 270 | 1,095 |
+| Complete Loss | 0.00% | 0.00% | 0.000 | 34 | 94 |
+
+The model predicted Complete Loss 94 times but got zero Complete Loss cases correct. Of the 34 actual Complete Loss rows, 26 were predicted as Severe Loss, 7 as No-Loss and 1 as Seepage Loss. Of 270 actual Severe Loss rows, only 8 were predicted correctly as Severe Loss. These results do not support a critical-loss detector claim.
+
+### Proxy-group bootstrap uncertainty
+
+A 1,000-repetition bootstrap resampled the 22 inferred proxy segments and recomputed metrics from fixed out-of-segment predictions. The 95% intervals are:
+
+| Metric | Bootstrap median | 95% interval |
+|---|---:|---:|
+| Accuracy | 0.673 | 0.578–0.756 |
+| Balanced accuracy | 0.300 | 0.236–0.479 |
+| Macro F1 | 0.278 | 0.224–0.346 |
+| Weighted F1 | 0.695 | 0.592–0.776 |
+| Quadratic weighted kappa | 0.283 | 0.130–0.421 |
+| Ordinal MAE | 0.402 | 0.291–0.537 |
+
+Complete Loss was absent from 120 of 1,000 bootstrap samples, because the class appears in only two inferred proxy segments. In the 880 samples that contained Complete Loss support, recall remained exactly zero. These intervals condition on the same proxy grouping and fixed predictions; they do not account for full model-training uncertainty or uncertainty in the physical identity of the groups.
+
+### Quick feature-family sensitivity test
+
+A separate ablation used the same proxy grouping but a different, deliberately lighter model configuration (max_iter=10, max_bins=63, min_samples_leaf=30). Therefore, do not compare its absolute metrics directly with the 30-iteration main model. Compare only the variants within this quick ablation.
+
+| Feature set | Accuracy | Balanced accuracy | Macro F1 | Severe recall | Complete recall |
+|---|---:|---:|---:|---:|---:|
+| All numeric features except target and depth | 62.94% | 29.86% | 0.276 | 3.33% | 0.00% |
+| Without FlowIn, FlowOut and PumpStroke | 60.16% | 28.79% | 0.263 | 4.07% | 0.00% |
+| Without flow family and StandpipePressure | 57.20% | 28.85% | 0.252 | 4.44% | 0.00% |
+
+Removing the flow family modestly reduced aggregate scores while slightly increasing Severe recall; Complete recall remained zero in every variant. This is not enough to conclude that the flow features leak the target, or that no leakage exists. The label derivation process must be documented, and related features can carry similar physical information.
+
+### Decision and next steps
+
+1. Do not tune the current model further against these same proxy folds and then treat them as an independent test.
+2. Obtain actual Well IDs or a source-authenticated row-to-well mapping. The 22 inferred segments cannot be labelled independent wells.
+3. Keep the multiclass evaluation and the binary Severe/Complete screen as separate tasks; neither evaluates future event onset.
+4. Prioritize analysis of why Complete Loss cases are mapped to Severe Loss and why Severe Loss has recall under 3% in the main run. Candidate changes must be selected using group-respecting validation, followed by a new independent holdout if available.
+5. Seek timestamps, event-onset labels and intervention logs before developing the second-stage early-warning model.
+
+Reproducible local script: `drilling-mvp/halaloya_multiclass_proxy_eval.py`. The run must explicitly include `--allow-depth-reset-proxy` and should use `--expected-critical-count 304` for the supplied workbook.
