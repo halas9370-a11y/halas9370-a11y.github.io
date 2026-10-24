@@ -37,10 +37,10 @@ The app fits models in memory during the selected experiment. It does **not** sa
 Run from the drilling-mvp directory:
 
 ```bash
-python halaloya_grouped_eval.py /path/to/42452_2021_4769_MOESM1_ESM.xlsx --bootstrap-reps 50 --out-json grouped_eval.json
+python halaloya_grouped_eval.py /path/to/42452_2021_4769_MOESM1_ESM.xlsx --allow-depth-reset-proxy --expected-critical-count 304 --bootstrap-reps 50 --max-iter 30 --out-json grouped_eval.json --segments-csv inferred_segments.csv
 ```
 
-The quick default uses 50 group-bootstrap resamples; use `--bootstrap-reps 300` or more if runtime allows and tighter uncertainty summaries are needed. The script checks row order and reconstructs **proxy segments**, not real wells. Its grouped scores must not be reported as leave-one-well-out validation unless the row-to-well mapping is verified. Results describe detection of same-row recorded labels, not a future-event early-warning model.
+The `--allow-depth-reset-proxy` option is required because the inferred groups are not verified Well IDs; the command runs a **proxy-segment** analysis only. The expected-count guard checks that the text label parser recognizes all 304 Severe/Complete rows in the supplied workbook, and stops before fitting if it does not. `--max-iter 30` and `--bootstrap-reps 50` produce a quick exploratory audit, not a final model selection. The script disables automatic early stopping, reports threshold-sensitivity and shuffled-order diagnostics, nearest-neighbour overlap and adversarial segment-distribution AUC, within-segment ranking metrics, bootstrap exclusions, and contiguous positive-label runs as proxy episodes. Those runs are not confirmed physical events.
 
 ## Source
 
