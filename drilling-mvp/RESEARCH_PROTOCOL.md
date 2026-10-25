@@ -60,3 +60,21 @@ Do not claim validated prediction accuracy on unseen wells/fields, prospective e
 ## Safety boundary
 
 Do not connect the prototype to rig controls or use it to make real-time drilling, well-control, treatment, or other safety-critical decisions. Any future field trial must be reviewed by qualified drilling professionals and run in shadow mode before any workflow relies on it.
+
+
+## Public deployment smoke test (2026-10-25)
+
+A read-only browser smoke test was performed on https://ehvqysekxk9hq7maczez3x.streamlit.app/ .
+
+Observed:
+- The page loaded successfully and rendered the title "HalaLoya AI Drilling Assistant".
+- The upload control for CSV/XLSX was visible.
+- The public page displayed a clear research-only warning stating that the prototype is not a real-time early-warning system, is not validated for drilling operations, and must not be used for safety-critical decisions.
+- The page warned against uploading confidential or commercially sensitive company data.
+- No page-level error or exception trace was observed during this opening-page check.
+
+Scope limits:
+- This was a page-load and visible-interface smoke test only. No workbook was uploaded and no model experiment was executed in the browser during this check.
+- The test does not prove that the live deployment is running the exact latest GitHub commit, nor does it verify model results or data-download behavior.
+- Before claiming deployment-level model validation, run a controlled end-to-end test with an authorized non-confidential copy of the public research workbook, record the app's displayed label counts and metrics, and compare them with the reproducible local evaluation artifacts. Do not upload confidential or commercially sensitive data.
+
