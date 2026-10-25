@@ -319,3 +319,26 @@ To test whether the apparent multiclass result depends only on the chosen reset 
 | 500 m | 20 | 62.49% | 29.83% | 0.275 | 3.33% | 0.00% |
 
 Scores are similar across these proxy-group thresholds, and Complete Loss recall remains zero. Changing the reset threshold alone does not solve the rare-class diagnosis problem. The fact that the 500 m threshold produces 20 segments is **not proof** those segments correspond to the 20 physical wells.
+
+
+## Validation gate: request row-to-well provenance metadata (2026-10-25)
+
+The five-class evaluation is complete as an exploratory diagnostic, but the next step is **not further tuning on the inferred groups**. The public workbook's visible columns do not supply a verified Well ID or timestamp. The 22 groups reconstructed from depth resets are proxies only and cannot be treated as the study's 20 physical wells.
+
+The 2021 paper describes 65,376 depth-based records from 20 Azadegan wells (source: https://doi.org/10.1007/s42452-021-04769-0). Before any well-generalization claim, request the smallest metadata package that can resolve row provenance:
+
+1. A stable, preferably anonymized Well ID for every workbook row, or a documented mapping of original row ranges/order to the 20 wells.
+2. Confirmation of whether the supplementary workbook concatenates wells in sequence and how well boundaries are represented.
+3. If available, timestamps or time/order indices that preserve the actual chronology within each well.
+4. If available, event identifiers or documented loss-event onset/offset times and the definitions used to assign the recorded severity label.
+5. Confirmation of any restrictions or conditions on reuse of the supplementary data and any supplied mapping.
+
+Do not request confidential operator information if a pseudonymous well ID, row index, and non-sensitive chronology metadata are sufficient.
+
+### Decision gate after the metadata response
+
+- **If verified well mapping is provided:** rerun the five-class evaluation with complete wells held out (for example, leave-one-well-out or GroupKFold by Well ID). Report the number of distinct wells and the number of held-out wells containing Severe/Complete Loss. Keep all five classes visible.
+- **If chronology and event onset are also available:** design a separate, prospective-style early-warning experiment using only records strictly before each event, predefine the prediction horizon and alert budget, and report lead time, missed events, and false alarms. Do not use same-row severity classification as evidence of early warning.
+- **If mapping is unavailable:** retain the current results as proxy-segment sensitivity analysis only. Do not claim unseen-well generalization and do not continue selecting models based on these same proxy folds as if they were an independent final test.
+
+Status on 2026-10-25: this request is prepared as the next action; no author-provided mapping or chronology has been received, and no email is represented as sent.
