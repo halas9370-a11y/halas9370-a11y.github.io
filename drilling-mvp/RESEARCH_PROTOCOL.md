@@ -78,3 +78,51 @@ Scope limits:
 - The test does not prove that the live deployment is running the exact latest GitHub commit, nor does it verify model results or data-download behavior.
 - Before claiming deployment-level model validation, run a controlled end-to-end test with an authorized non-confidential copy of the public research workbook, record the app's displayed label counts and metrics, and compare them with the reproducible local evaluation artifacts. Do not upload confidential or commercially sensitive data.
 
+
+
+## End-to-end upload test checklist (2026-10-26)
+
+### Current status
+
+The public app's opening page was smoke-tested successfully. A subsequent attempt to upload the workbook through the remote browser could not proceed because the browser cannot access the local /mnt/data file and the Streamlit uploader only opens a native file picker. Therefore, **the browser-based upload/model test is still pending**. Do not record it as passed.
+
+### Raw workbook reference values
+
+A local integrity check of the public supplementary workbook used for this project found:
+
+- Workbook: 42452_2021_4769_MOESM1_ESM.xlsx
+- Worksheet: Sheet1
+- SHA-256: b58731ca908a37bc9c6688e50b98e0a3afc20cef48fbd6a17e1aecd03270dd48
+- Rows × columns: 65,376 × 18
+- Missing cells: 0
+- Exact duplicate rows: 0
+- Detected target: LossesSeverity
+- Numeric columns: 17; measured depth M.Depth must be excluded from the 16 predictive features under current app policy.
+
+Expected target counts:
+
+| Class | Rows |
+|---|---:|
+| No-Loss | 49,545 |
+| Seepage Loss | 12,880 |
+| Partial Loss | 2,647 |
+| Severe Loss | 270 |
+| Complete Loss | 34 |
+| **Total** | **65,376** |
+
+### Manual acceptance test
+
+1. In a normal user browser, download the same public workbook and open https://ehvqysekxk9hq7maczez3x.streamlit.app/ .
+2. Upload the workbook and select Sheet1.
+3. Confirm that the overview shows 65,376 rows, 18 columns, zero duplicate rows, and zero missing cells; confirm the five class counts above.
+4. Confirm the exploratory comparison identifies 16 numeric input features and excludes both LossesSeverity and M.Depth from predictors.
+5. Click **Compare models and evaluate selected candidate** once. Confirm results render without an exception, that the test split is clearly labelled as random row-level or depth-block, and that the warnings say the metrics are exploratory and not validation on unseen wells.
+6. Record the selected estimator, class-specific precision/recall/F1 and support, confusion matrix, and the separate critical-screen false positives/false negatives. Download the JSON report if the control is available.
+
+### Interpretation boundaries
+
+- Matching the target counts verifies that the intended workbook was loaded; it does not verify predictive performance.
+- The app's random row split is not directly comparable to the previous leave-one-proxy-segment-out five-class experiment because the validation design differs.
+- The separate app screen labels Severe/Complete rows in the current record; it is not a future-event early-warning evaluation.
+- If the app displays different counts, stop before interpreting model metrics and investigate worksheet selection, parsing, or a different workbook version.
+- Test status remains **pending** until the upload-and-run steps above are completed in the browser. No claim is made that the live deployment is identical to the repository commit.
