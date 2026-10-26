@@ -342,3 +342,28 @@ Do not request confidential operator information if a pseudonymous well ID, row 
 - **If mapping is unavailable:** retain the current results as proxy-segment sensitivity analysis only. Do not claim unseen-well generalization and do not continue selecting models based on these same proxy folds as if they were an independent final test.
 
 Status on 2026-10-25: this request is prepared as the next action; no author-provided mapping or chronology has been received, and no email is represented as sent.
+
+
+## Related publications and multi-dataset policy (2026-10-26)
+
+### The two Azadegan papers are related studies, not independent datasets
+
+The 2021 paper by Sajjad Mardanirad, David A. Wood and Hassan Zakeri evaluates CNN, GRU and LSTM models for the five recorded fluid-loss classes using 65,376 records from 20 Azadegan wells. DOI: https://doi.org/10.1007/s42452-021-04769-0.
+
+The related 2022 paper by David A. Wood, Sajjad Mardanirad and Hassan Zakeri evaluates multiple ML/DL approaches with explicit attention to the severe class imbalance in the same stated 20-well, 65,376-record Azadegan dataset. Its discussion reports different relative strengths across model families/classes (for example, Random Forest across classes 1–3, AdaBoost for class 4, and Decision Tree for class 5). DOI: https://doi.org/10.1007/s13202-021-01411-y.
+
+Thus, these are two distinct analyses by the same three authors, but the published descriptions indicate they use the same underlying Azadegan dataset. Do not concatenate their reported metrics or count the two publications as two independent training datasets. Their methods are useful as candidates to reproduce on the available workbook; their reported metrics are literature results, not training rows or independent validation.
+
+### Policy for using another field's dataset
+
+The separate Marun dataset (2,820 records from 305 wells) has a different task: the associated publication describes a continuous mud-loss rate target rather than the five categorical Azadegan severity labels. Its public Mendeley listing states a CC BY-NC 3.0 license (https://data.mendeley.com/datasets/hr7hbxdryp/1). Do not merge it directly into the Azadegan five-class training table, convert loss rate to Complete/Severe labels without a documented engineering definition, or use it commercially without confirming rights and obtaining any required permission.
+
+Potential use after independent schema/units/provenance checks:
+1. Keep Azadegan as the main five-class recorded-severity experiment.
+2. Treat Marun as a separate regression track or an external-domain research benchmark, with its own metrics and license controls.
+3. Consider joint training or transfer learning only after a documented feature map, compatible units, clearly defined target relationship, and group-aware split by well have been established. Report the field/source of each record and do not let records from the same physical well cross train/test partitions.
+4. Do not claim that high metrics reported in either paper establish performance of the HalaLoya implementation; the HalaLoya evaluation must be reproduced under its own documented validation design.
+
+### Practical model-development recommendation
+
+First finish the pending upload-and-run acceptance test for the hosted app. In parallel, request a row-to-well mapping from the three authors. Once well identity is verified, reproduce a simple baseline and then compare relevant model families (including CNN/GRU/LSTM only if chronological sequence data and sufficient grouping support them, alongside RF/AdaBoost/Decision Tree). Keep a final group-held-out test untouched until model selection is complete. Treat prospective early-warning as a separate future task requiring timestamps, event onset labels, and only pre-event features.
