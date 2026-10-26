@@ -148,18 +148,23 @@ if target_column is not None and depth_column_for_audit is not None:
     depth_audit = depth_audit.dropna(subset=[depth_column_for_audit, target_column])
     if len(depth_audit) >= 20 and depth_audit[depth_column_for_audit].nunique() >= 3:
         try:
-            depth_audit["depth_band"] = pd.qcut(
+            depth_bins = pd.qcut(
                 depth_audit[depth_column_for_audit],
                 q=5,
                 duplicates="drop",
             )
+            # Streamlit/Plotly cannot reliably serialize pandas Interval objects.
+            # Convert the qcut intervals into ordered display strings before charting.
+            depth_band_order = [str(interval) for interval in depth_bins.cat.categories]
+            depth_audit["depth_band"] = depth_bins.astype(str)
             counts_by_depth = pd.crosstab(depth_audit["depth_band"], depth_audit[target_column])
+            counts_by_depth = counts_by_depth.reindex(depth_band_order)
             counts_by_depth["TOTAL"] = counts_by_depth.sum(axis=1)
             percentages_by_depth = pd.crosstab(
                 depth_audit["depth_band"],
                 depth_audit[target_column],
                 normalize="index",
-            ).mul(100).round(2)
+            ).mul(100).round(2).reindex(depth_band_order)
             st.subheader("Loss severity by measured-depth band")
             st.caption(
                 "This descriptive audit groups observed records into up to five depth bands. "
