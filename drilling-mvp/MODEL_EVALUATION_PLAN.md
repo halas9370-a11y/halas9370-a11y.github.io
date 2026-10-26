@@ -367,3 +367,39 @@ Potential use after independent schema/units/provenance checks:
 ### Practical model-development recommendation
 
 First finish the pending upload-and-run acceptance test for the hosted app. In parallel, request a row-to-well mapping from the three authors. Once well identity is verified, reproduce a simple baseline and then compare relevant model families (including CNN/GRU/LSTM only if chronological sequence data and sufficient grouping support them, alongside RF/AdaBoost/Decision Tree). Keep a final group-held-out test untouched until model selection is complete. Treat prospective early-warning as a separate future task requiring timestamps, event onset labels, and only pre-event features.
+
+
+## Hosted app depth-block run reported by user (2026-10-26)
+
+### Data-loading checks
+
+The user uploaded the public Azadegan workbook in the hosted app and reported:
+- Rows: 65,376; columns: 18.
+- Duplicate rows: 0; missing cells: 0.
+- Detected target: `LossesSeverity`.
+- Numeric input features: 16 after excluding target and `M.Depth`.
+- Depth-block cutoff: `M.Depth = 3004`; 14,479 rows in the high-depth holdout; 98 recorded Severe/Complete cases in that test block.
+- Selected multiclass candidate: Random Forest, `class_weight="balanced"`, `min_samples_leaf=1`.
+- Majority baseline accuracy: 61.3%; selected model accuracy: 68.0%; balanced accuracy on classes present in test: 32.7%; Macro F1 all known classes: 0.258; Macro F1 on classes present in test/predictions: 0.322.
+
+### Critical-screen result
+
+- Selected binary screen: Extra Trees with balanced class weighting, threshold 0.15 selected on internal validation.
+- True positives: 0; missed critical test cases: 98; false alarms: 0; specificity: 100%.
+- Test average precision: 0.007 (about 0.7%). Observed critical prevalence in the 14,479-row test block is about 0.68%, so this average precision is close to the prevalence baseline and does not show useful ranking skill.
+- The model predicted zero examples of both Severe Loss and Complete Loss in the multiclass output. There are no true Complete Loss examples in this high-depth holdout; Complete Loss recall cannot be measured here.
+- The 68.0% multiclass accuracy is not a useful safety result: the critical screen missed all 98 critical test records. Do not tune the threshold against these same held-out test results and continue to present the same block as an independent test.
+
+### Separate depth-band audit bug and repair
+
+During the run, the descriptive depth-band audit reported: `Object of type Interval is not JSON serializable`. The model experiment continued and produced metrics, but the descriptive depth-band table/chart failed to render properly. On 2026-10-26 the app source was patched to convert the pandas qcut interval labels to ordered strings before crosstab/plotting. The patch was committed in GitHub commit `434a82fdd9bf20ff45df8e628d9bb4e5a5a3f188` and the replacement was checked locally against the workbook; it produced five ordered depth bands and the expected counts/percentages.
+
+The deployment must reload the new commit before the UI fix can be confirmed on the hosted site. The latest uploaded run occurred before this patch and does not establish the live deployment has already applied it.
+
+### Decision
+
+The depth-block experiment has now confirmed the major known limitation rather than solved it: severe/complete-loss screening did not identify any critical record in the high-depth holdout. Do not describe this model as an early-warning detector. Next technical priorities are:
+1. Verify the depth-band display after deployment reload.
+2. Preserve this run in the experiment log, but do not optimize to the same holdout repeatedly.
+3. Obtain verified Well IDs or row-to-well mapping from the authors.
+4. Once a valid group mapping exists, design the next train/validation/test split around entire wells; keep early warning as a separate future-event task requiring chronology and event-onset data.
